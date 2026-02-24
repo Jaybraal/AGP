@@ -40,6 +40,6 @@ data/backups/
 *.log
 
 # Distribución / empaquetado
-*.spec
 dist/
+build/
 AGP Sistema.app/

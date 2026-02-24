@@ -1,8 +1,20 @@
 import os
+import sys
 
-BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
+# En modo bundle (PyInstaller) los datos del usuario van a
+# ~/Library/Application Support/AGP para que sean escribibles.
+# En modo desarrollo se usa la carpeta del proyecto normalmente.
+if getattr(sys, 'frozen', False):
+    _APP_SUPPORT = os.path.join(
+        os.path.expanduser('~'), 'Library', 'Application Support', 'AGP'
+    )
+    BASE_DIR   = _APP_SUPPORT
+    ASSETS_DIR = os.path.join(sys._MEIPASS, 'assets')
+else:
+    BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+    ASSETS_DIR = os.path.join(BASE_DIR, 'assets')
+
 DB_PATH      = os.path.join(BASE_DIR, "data", "prestamos.db")
-ASSETS_DIR   = os.path.join(BASE_DIR, "assets")
 LOGO_PATH    = os.path.join(ASSETS_DIR, "logo.png")
 RECEIPTS_DIR = os.path.join(BASE_DIR, "data", "recibos")
 REPORTS_DIR  = os.path.join(BASE_DIR, "data", "reportes")
