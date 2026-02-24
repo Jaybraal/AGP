@@ -29,7 +29,7 @@ echo.
 echo Instalando dependencias...
 echo.
 python -m pip install --upgrade pip --quiet
-python -m pip install customtkinter==5.2.2 Pillow python-dateutil fpdf2 openpyxl pyserial --quiet
+python -m pip install PyQt6 flask python-dateutil fpdf2 openpyxl --quiet
 
 if errorlevel 1 (
     echo [ERROR] Fallo la instalacion de dependencias.
