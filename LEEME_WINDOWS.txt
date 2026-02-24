@@ -1,0 +1,70 @@
+=====================================================
+  SISTEMA DE GESTION DE PRESTAMOS - AGP
+  Instrucciones para Windows
+=====================================================
+
+REQUISITOS
+----------
+- Windows 10 o Windows 11
+- Conexion a Internet (solo para la instalacion)
+
+PASOS DE INSTALACION (solo la primera vez)
+-------------------------------------------
+
+1. INSTALAR PYTHON
+   - Ve a: https://www.python.org/downloads/
+   - Descarga Python 3.11 o superior (boton amarillo grande)
+   - Ejecuta el instalador
+   - MUY IMPORTANTE: marca la casilla "Add Python to PATH"
+     antes de hacer clic en "Install Now"
+   - Completa la instalacion
+
+2. COPIAR LA CARPETA AGP
+   - Copia toda la carpeta AGP a tu computadora Windows
+   - Puedes copiarla a cualquier lugar (Escritorio, Documentos, etc.)
+   - Recomendado: C:\AGP  o  C:\Users\TuNombre\Documents\AGP
+
+3. EJECUTAR EL INSTALADOR
+   - Abre la carpeta AGP
+   - Haz doble clic en: instalar_windows.bat
+   - Si Windows pregunta "Desea que esta app haga cambios...", di Si
+   - Espera a que termine (puede demorar 1-2 minutos)
+   - Al finalizar veras el mensaje "Instalacion completada"
+
+USO DIARIO
+----------
+Para abrir el sistema cada dia tienes dos opciones:
+
+  Opcion A: Doble clic en el acceso directo del Escritorio
+            "AGP Sistema de Prestamos"
+
+  Opcion B: Doble clic en "ejecutar_agp.bat" dentro de la carpeta AGP
+
+LA BASE DE DATOS
+----------------
+Todos los datos se guardan en:
+   AGP\data\prestamos.db
+
+- Este archivo es la base de datos de todos tus prestamos y clientes
+- Hazle una copia de seguridad periodicamente (copialo a un USB o Drive)
+- Si cambias de computadora, copia toda la carpeta AGP completa
+
+PROBLEMAS COMUNES
+-----------------
+
+"No se reconoce 'python' como un comando interno..."
+  Solucion: Reinstala Python y asegurate de marcar "Add Python to PATH"
+
+La ventana se abre y se cierra rapido:
+  Solucion: Haz clic derecho en ejecutar_agp.bat y elige "Abrir"
+  para ver el mensaje de error
+
+"ModuleNotFoundError: No module named 'customtkinter'"
+  Solucion: Ejecuta instalar_windows.bat nuevamente
+
+SOPORTE
+-------
+Si el sistema no abre, revisa el archivo:
+   C:\Users\TuNombre\AppData\Local\Temp\agp_launch.log
+
+=====================================================

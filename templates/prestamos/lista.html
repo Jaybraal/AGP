@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Préstamos{% endblock %}
+
+{% block content %}
+<div class="p-6">
+
+  <!-- Header -->
+  <div class="flex items-start justify-between mb-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Préstamos</h1>
+      <p class="text-slate-400 text-sm">{{ prestamos|length }} préstamo{{ 's' if prestamos|length != 1 }}</p>
+    </div>
+    <a href="/prestamos/nuevo"
+       class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700">
+      ➕ Nuevo Préstamo
+    </a>
+  </div>
+
+  <hr class="border-slate-200 mb-4">
+
+  <!-- Filters -->
+  <form method="get" class="flex items-center gap-3 mb-4">
+    <div class="relative flex-1 max-w-md">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+      <input type="text" name="q" value="{{ q }}" placeholder="N° préstamo, nombre o cédula..."
+             class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm bg-white">
+    </div>
+    <select name="estado" onchange="this.form.submit()"
+            class="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+      <option value="">Todos los estados</option>
+      {% for e in estados %}
+      <option value="{{ e }}" {{ 'selected' if estado == e }}>{{ e }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit"
+            class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50">
+      Buscar
+    </button>
+  </form>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-200">
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase">N° Préstamo</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase">Cliente</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase">Monto</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase">Saldo</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase">Cuota</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase">Frecuencia</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase">Estado</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase">Vencimiento</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for p in prestamos %}
+        <tr class="hover-row">
+          <td class="px-4 py-3 font-mono text-xs text-slate-600">{{ p.numero_prestamo }}</td>
+          <td class="px-4 py-3 font-medium">{{ p.nombres }} {{ p.apellidos }}</td>
+          <td class="px-4 py-3">{{ p.monto_principal|moneda }}</td>
+          <td class="px-4 py-3 font-semibold">{{ p.saldo_capital|moneda }}</td>
+          <td class="px-4 py-3">{{ p.cuota_base|moneda }}</td>
+          <td class="px-4 py-3 text-slate-400">{{ p.frecuencia_pago }}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ p.estado|estado_bg }}">
+              {{ p.estado }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-slate-400 text-xs">{{ p.fecha_vencimiento }}</td>
+          <td class="px-4 py-3">
+            <a href="/prestamos/{{ p.id }}"
+               class="px-2.5 py-1 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700">Ver</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9" class="px-4 py-12 text-center text-slate-400">
+            {% if q %}No se encontraron préstamos para "{{ q }}"
+            {% elif estado %}No hay préstamos con estado {{ estado }}
+            {% else %}No hay préstamos registrados{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

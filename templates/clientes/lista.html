@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Clientes{% endblock %}
+
+{% block content %}
+<div class="p-6">
+
+  <!-- Header -->
+  <div class="flex items-start justify-between mb-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Clientes</h1>
+      <p class="text-slate-400 text-sm">{{ clientes|length }} cliente{{ 's' if clientes|length != 1 }} encontrado{{ 's' if clientes|length != 1 }}</p>
+    </div>
+    <a href="/clientes/nuevo"
+       class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">
+      ➕ Nuevo Cliente
+    </a>
+  </div>
+
+  <hr class="border-slate-200 mb-4">
+
+  <!-- Search + actions -->
+  <div class="flex items-center gap-3 mb-4">
+    <form method="get" class="flex-1 max-w-md">
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+        <input type="text" name="q" value="{{ q }}" placeholder="Buscar por nombre, cédula o teléfono..."
+               class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:border-blue-500 bg-white">
+      </div>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-200">
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Cédula / Doc.</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Nombres</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Apellidos</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Teléfono</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Ciudad</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Calific.</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for c in clientes %}
+        <tr class="hover-row">
+          <td class="px-4 py-3 font-mono text-xs text-slate-600">{{ c.cedula }}</td>
+          <td class="px-4 py-3 font-medium">{{ c.nombres }}</td>
+          <td class="px-4 py-3">{{ c.apellidos }}</td>
+          <td class="px-4 py-3 text-slate-500">{{ c.telefono_principal }}</td>
+          <td class="px-4 py-3 text-slate-500">{{ c.ciudad or '—' }}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded-full text-xs font-semibold
+              {% if c.calificacion == 'BUENO' %}bg-green-100 text-green-700
+              {% elif c.calificacion == 'REGULAR' %}bg-amber-100 text-amber-700
+              {% elif c.calificacion == 'MALO' %}bg-red-100 text-red-700
+              {% else %}bg-slate-100 text-slate-600{% endif %}">
+              {{ c.calificacion }}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <a href="/clientes/{{ c.id }}"
+                 class="px-2.5 py-1 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700">Ver</a>
+              <a href="/clientes/{{ c.id }}/editar"
+                 class="px-2.5 py-1 border border-slate-200 text-slate-600 rounded text-xs font-semibold hover:bg-slate-50">Editar</a>
+              <a href="/prestamos/nuevo?cliente_id={{ c.id }}"
+                 class="px-2.5 py-1 border border-slate-200 text-slate-600 rounded text-xs font-semibold hover:bg-slate-50">Préstamo</a>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="px-4 py-12 text-center text-slate-400">
+            {% if q %}No se encontraron clientes para "{{ q }}"{% else %}No hay clientes registrados{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

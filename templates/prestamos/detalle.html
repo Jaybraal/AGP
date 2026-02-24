@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Préstamo {{ prestamo.numero_prestamo }}{% endblock %}
+
+{% block content %}
+<div class="p-6">
+
+  <!-- Header -->
+  <div class="flex items-start justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <a href="/prestamos" class="text-slate-400 hover:text-slate-600 text-lg">←</a>
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">{{ prestamo.numero_prestamo }}</h1>
+        <div class="flex items-center gap-2 mt-0.5">
+          <a href="/clientes/{{ prestamo.cliente_id }}" class="text-blue-600 text-sm hover:underline">
+            {{ prestamo.nombres }} {{ prestamo.apellidos }}
+          </a>
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ prestamo.estado|estado_bg }}">
+            {{ prestamo.estado }}
+          </span>
+        </div>
+      </div>
+    </div>
+    <a href="/caja" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700">
+      💵 Ir a Caja
+    </a>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="grid grid-cols-4 gap-3 mb-6">
+    {% set cards = [
+      ('Monto Original',  prestamo.monto_principal|moneda, 'text-slate-700'),
+      ('Saldo Capital',   prestamo.saldo_capital|moneda,   'text-blue-600'),
+      ('Cuota Base',      prestamo.cuota_base|moneda,      'text-slate-700'),
+      ('Vencimiento',     prestamo.fecha_vencimiento,      'text-slate-700'),
+    ] %}
+    {% for label, val, color in cards %}
+    <div class="bg-white rounded-xl border border-slate-200 p-4">
+      <p class="text-xs text-slate-400 mb-1">{{ label }}</p>
+      <p class="font-bold text-lg {{ color }}">{{ val }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Details + cuotas -->
+  <div class="grid grid-cols-3 gap-4 mb-4">
+
+    <!-- Info -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+      <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Datos del Préstamo</h2>
+      <dl class="space-y-2">
+        {% for label, val in [
+          ('Tasa de Interés', prestamo.tasa_interes|string + '% ' + prestamo.tipo_tasa),
+          ('Plazo',           prestamo.plazo|string + ' cuotas'),
+          ('Frecuencia',      prestamo.frecuencia_pago),
+          ('Amortización',    prestamo.tipo_amortizacion),
+          ('Fecha Inicio',    prestamo.fecha_inicio),
+          ('Total Intereses', prestamo.total_intereses|moneda),
+          ('Total a Pagar',   prestamo.total_a_pagar|moneda),
+        ] %}
+        <div>
+          <dt class="text-xs text-slate-400">{{ label }}</dt>
+          <dd class="text-sm font-medium text-slate-700">{{ val }}</dd>
+        </div>
+        {% endfor %}
+      </dl>
+    </div>
+
+    <!-- Cuotas -->
+    <div class="col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100">
+        <h2 class="font-semibold text-slate-700">Tabla de Cuotas ({{ cuotas|length }})</h2>
+      </div>
+      <div class="overflow-auto max-h-64">
+        <table class="w-full text-xs">
+          <thead class="sticky top-0 bg-slate-50">
+            <tr class="border-b border-slate-200">
+              <th class="px-3 py-2 text-left font-bold text-slate-400">#</th>
+              <th class="px-3 py-2 text-left font-bold text-slate-400">Vencimiento</th>
+              <th class="px-3 py-2 text-left font-bold text-slate-400">Capital</th>
+              <th class="px-3 py-2 text-left font-bold text-slate-400">Intereses</th>
+              <th class="px-3 py-2 text-left font-bold text-slate-400">Cuota</th>
+              <th class="px-3 py-2 text-left font-bold text-slate-400">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for c in cuotas %}
+            <tr class="hover-row {% if c.estado == 'VENCIDA' %}bg-red-50{% elif c.estado == 'PAGADA' %}bg-green-50{% endif %}">
+              <td class="px-3 py-2 text-slate-500">{{ c.numero_cuota }}</td>
+              <td class="px-3 py-2">{{ c.fecha_vencimiento }}</td>
+              <td class="px-3 py-2">{{ c.capital|moneda }}</td>
+              <td class="px-3 py-2">{{ c.intereses|moneda }}</td>
+              <td class="px-3 py-2 font-semibold">{{ c.cuota_total|moneda }}</td>
+              <td class="px-3 py-2">
+                <span class="px-1.5 py-0.5 rounded text-xs font-semibold
+                  {% if c.estado == 'PAGADA' %}bg-green-100 text-green-700
+                  {% elif c.estado == 'VENCIDA' %}bg-red-100 text-red-700
+                  {% elif c.estado == 'PARCIAL' %}bg-amber-100 text-amber-700
+                  {% else %}bg-slate-100 text-slate-500{% endif %}">
+                  {{ c.estado }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Payment history -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-slate-100">
+      <h2 class="font-semibold text-slate-700">Historial de Pagos ({{ pagos|length }})</h2>
+    </div>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-200">
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Recibo</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Fecha</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Capital</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Intereses</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Mora</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Total</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Método</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for pg in pagos %}
+        <tr class="hover-row">
+          <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ pg.numero_recibo }}</td>
+          <td class="px-4 py-3 text-xs text-slate-500">{{ pg.fecha_pago }}</td>
+          <td class="px-4 py-3">{{ pg.monto_capital|moneda }}</td>
+          <td class="px-4 py-3">{{ pg.monto_intereses|moneda }}</td>
+          <td class="px-4 py-3 text-red-500">{{ pg.monto_mora|moneda }}</td>
+          <td class="px-4 py-3 font-bold">{{ pg.monto_total|moneda }}</td>
+          <td class="px-4 py-3 text-slate-400 text-xs">{{ pg.metodo_pago }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="px-4 py-8 text-center text-slate-400">Sin pagos registrados</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

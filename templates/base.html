@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGP — {% block title %}Sistema de Préstamos{% endblock %}</title>
+  <script src="/static/js/tailwind.js"></script>
+  <script src="/static/js/htmx.min.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { sidebar: '#1E3A8A', primary: '#2563EB' } } }
+    }
+  </script>
+</head>
+<body class="flex h-screen bg-slate-100 overflow-hidden font-sans text-slate-800">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <aside class="w-56 bg-[#1E3A8A] flex flex-col flex-shrink-0 select-none">
+
+    <!-- Logo -->
+    <div class="px-4 py-4 border-b border-blue-800">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0">A</div>
+        <div>
+          <div class="text-white font-bold text-sm leading-tight">AGP</div>
+          <div class="text-blue-300 text-xs">Gestión de Préstamos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
+      <p class="text-blue-400 text-xs font-semibold px-3 pb-1 pt-1 uppercase tracking-wider">Navegación</p>
+
+      {% set nav = [
+        ('dashboard',  '🏠', 'Inicio',     '/'),
+        ('clientes',   '👥', 'Clientes',   '/clientes'),
+        ('prestamos',  '📋', 'Préstamos',  '/prestamos'),
+        ('caja',       '💵', 'Caja',       '/caja'),
+        ('reportes',   '📊', 'Reportes',   '/reportes'),
+      ] %}
+
+      {% for key, icon, label, href in nav %}
+      <a href="{{ href }}"
+         class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                {% if active_section == key %}bg-blue-600 text-white shadow-sm{% else %}text-blue-100 hover:bg-blue-800 hover:text-white{% endif %}">
+        <span class="text-base w-5 text-center">{{ icon }}</span>
+        <span>{{ label }}</span>
+      </a>
+      {% endfor %}
+
+      <div class="pt-3 mt-3 border-t border-blue-800">
+        <a href="/configuracion"
+           class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                  {% if active_section == 'configuracion' %}bg-blue-600 text-white{% else %}text-blue-100 hover:bg-blue-800 hover:text-white{% endif %}">
+          <span class="text-base w-5 text-center">⚙️</span>
+          <span>Configuración</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Footer -->
+    <div class="px-4 py-3 border-t border-blue-800 flex items-center gap-2">
+      <div class="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
+      <span class="text-blue-300 text-xs">Sistema v1.0</span>
+    </div>
+  </aside>
+
+  <!-- ── Main ────────────────────────────────────────────────── -->
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+    <div class="px-6 pt-3 space-y-1 flex-shrink-0">
+      {% for cat, msg in messages %}
+      <div class="px-4 py-2.5 rounded-lg text-sm font-medium
+                  {% if cat == 'success' %}bg-green-50 text-green-800 border border-green-200
+                  {% elif cat == 'danger' %}bg-red-50 text-red-800 border border-red-200
+                  {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+        {{ msg }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Content -->
+    <div class="flex-1 overflow-auto">
+      {% block content %}{% endblock %}
+    </div>
+
+  </main>
+</body>
+</html>

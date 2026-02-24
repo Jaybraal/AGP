@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Reportes{% endblock %}
+
+{% block content %}
+<div class="p-6">
+
+  <h1 class="text-2xl font-bold text-slate-800 mb-4">Reportes</h1>
+
+  <!-- Tabs -->
+  <div class="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit mb-6">
+    {% for key, label in [('caja','📊 Caja Diaria'),('mora','⚠️ Mora'),('proyeccion','📈 Proyección'),('historial','🗂️ Historial')] %}
+    <a href="/reportes?tab={{ key }}{% if key == 'caja' %}&fecha={{ fecha|default('') }}{% elif key == 'proyeccion' %}&dias={{ dias|default(30) }}{% endif %}"
+       class="px-4 py-2 rounded-md text-sm font-semibold transition-colors
+              {{ 'bg-white shadow text-blue-600' if tab == key else 'text-slate-500 hover:text-slate-700' }}">
+      {{ label }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- ── Caja Diaria ─────────────────────────────────────────── -->
+  {% if tab == 'caja' %}
+  <form method="get" class="flex items-center gap-3 mb-5">
+    <input type="hidden" name="tab" value="caja">
+    <label class="text-sm text-slate-500 font-medium">Fecha:</label>
+    <input type="date" name="fecha" value="{{ fecha }}"
+           class="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+    <button type="submit"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700">
+      Consultar
+    </button>
+    <a href="/reportes/pdf/caja?fecha={{ fecha }}"
+       class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50">
+      🖨️ PDF
+    </a>
+    <a href="/reportes/excel/caja?fecha={{ fecha }}"
+       class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50">
+      📥 Excel
+    </a>
+  </form>
+
+  {% if reporte_caja %}
+  {% set t = reporte_caja.totales %}
+  <div class="grid grid-cols-5 gap-3 mb-5">
+    {% for label, val in [
+      ('Cobros', t.num_pagos),
+      ('Capital', 'RD$ ' + '%.2f'|format(t.total_capital)),
+      ('Intereses', 'RD$ ' + '%.2f'|format(t.total_intereses)),
+      ('Mora', 'RD$ ' + '%.2f'|format(t.total_mora)),
+      ('TOTAL', 'RD$ ' + '%.2f'|format(t.total_cobrado)),
+    ] %}
+    <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center">
+      <p class="text-xs text-slate-400 mb-1">{{ label }}</p>
+      <p class="font-bold text-blue-700 text-sm">{{ val }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-200">
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Recibo</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Cliente</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Préstamo</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Capital</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Intereses</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Mora</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">Total</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for p in reporte_caja.pagos %}
+        <tr class="hover-row">
+          <td class="px-4 py-2 font-mono text-xs">{{ p.numero_recibo }}</td>
+          <td class="px-4 py-2">{{ p.cliente_nombre }}</td>
+          <td class="px-4 py-2 font-mono text-xs">{{ p.numero_prestamo }}</td>
+          <td class="px-4 py-2">RD$ {{ "%.2f"|format(p.monto_capital) }}</td>
+          <td class="px-4 py-2">RD$ {{ "%.2f"|format(p.monto_intereses) }}</td>
+          <td class="px-4 py-2 text-red-500">RD$ {{ "%.2f"|format(p.monto_mora) }}</td>
+          <td class="px-4 py-2 font-bold">RD$ {{ "%.2f"|format(p.monto_total) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="px-4 py-8 text-center text-slate-400">Sin cobros para esta fecha</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- ── Mora ───────────────────────────────────────────────── -->
+  {% elif tab == 'mora' %}
+  <div class="flex justify-end gap-2 mb-4">
+    <a href="/reportes?tab=mora" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50">Actualizar</a>
+    <a href="/reportes/excel/mora" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50">📥 Excel</a>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-200">
+          {% for h in ['Préstamo','Cliente','Cédula','Teléfono','1ra Vencida','Cuotas Venc.','Monto Pend.','Saldo Capital'] %}
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">{{ h }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for r in mora %}
+        <tr class="hover-row">
+          <td class="px-4 py-2 font-mono text-xs">{{ r.numero_prestamo }}</td>
+          <td class="px-4 py-2 font-medium">{{ r.cliente_nombre }}</td>
+          <td class="px-4 py-2 text-xs">{{ r.cedula }}</td>
+          <td class="px-4 py-2 text-xs">{{ r.telefono_principal }}</td>
+          <td class="px-4 py-2 text-xs text-red-500">{{ r.primera_cuota_vencida }}</td>
+          <td class="px-4 py-2 text-center font-bold text-red-600">{{ r.cuotas_vencidas }}</td>
+          <td class="px-4 py-2 font-semibold">RD$ {{ "%.2f"|format(r.monto_pendiente) }}</td>
+          <td class="px-4 py-2">RD$ {{ "%.2f"|format(r.saldo_capital) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">Sin préstamos en mora</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Proyección ─────────────────────────────────────────── -->
+  {% elif tab == 'proyeccion' %}
+  <form method="get" class="flex items-center gap-3 mb-5">
+    <input type="hidden" name="tab" value="proyeccion">
+    <label class="text-sm text-slate-500 font-medium">Días a proyectar:</label>
+    <input type="number" name="dias" value="{{ dias|default(30) }}" min="1" max="365"
+           class="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white w-24">
+    <button type="submit"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700">
+      Calcular
+    </button>
+    <a href="/reportes/excel/proyeccion?dias={{ dias|default(30) }}"
+       class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50">
+      📥 Excel
+    </a>
+  </form>
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-200">
+          {% for h in ['Fecha Vencimiento','# Cuotas','Esperado','Capital','Intereses'] %}
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">{{ h }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for r in proyeccion %}
+        <tr class="hover-row">
+          <td class="px-4 py-2 font-medium">{{ r.fecha_vencimiento }}</td>
+          <td class="px-4 py-2 text-center">{{ r.num_cuotas }}</td>
+          <td class="px-4 py-2 font-bold text-blue-600">RD$ {{ "%.2f"|format(r.monto_esperado) }}</td>
+          <td class="px-4 py-2">RD$ {{ "%.2f"|format(r.capital_esperado) }}</td>
+          <td class="px-4 py-2">RD$ {{ "%.2f"|format(r.intereses_esperados) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Sin proyección disponible</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Historial Cajas ────────────────────────────────────── -->
+  {% elif tab == 'historial' %}
+  <div class="flex justify-end mb-4">
+    <a href="/reportes?tab=historial" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50">Actualizar</a>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-200">
+          {% for h in ['Fecha','Apertura','Cierre','Estado','Monto Inicial','Total Cobrado','Monto Cierre'] %}
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-400">{{ h }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for c in cajas %}
+        <tr class="hover-row">
+          <td class="px-4 py-2 font-medium">{{ c.fecha }}</td>
+          <td class="px-4 py-2 text-xs text-slate-400">{{ c.hora_apertura }}</td>
+          <td class="px-4 py-2 text-xs text-slate-400">{{ c.hora_cierre or '—' }}</td>
+          <td class="px-4 py-2">
+            <span class="px-2 py-0.5 rounded-full text-xs font-semibold
+                         {{ 'bg-green-100 text-green-700' if c.estado == 'ABIERTA' else 'bg-slate-100 text-slate-500' }}">
+              {{ c.estado }}
+            </span>
+          </td>
+          <td class="px-4 py-2">RD$ {{ "%.2f"|format(c.monto_apertura) }}</td>
+          <td class="px-4 py-2 font-bold text-blue-600">RD$ {{ "%.2f"|format(c.total_cobrado) }}</td>
+          <td class="px-4 py-2">{{ 'RD$ %.2f'|format(c.monto_cierre) if c.monto_cierre else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="px-4 py-8 text-center text-slate-400">Sin historial</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

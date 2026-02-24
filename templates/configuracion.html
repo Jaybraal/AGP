@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Configuración{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-2xl">
+
+  <h1 class="text-2xl font-bold text-slate-800 mb-6">Configuración del Sistema</h1>
+
+  <form method="post">
+
+    <!-- Agencia -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-4">
+      <h2 class="text-sm font-bold text-slate-700 mb-4 pb-2 border-b border-slate-100">🏢 Datos de la Agencia</h2>
+      <div class="space-y-3">
+        {% for clave, label in [
+          ('nombre_agencia',    'Nombre de la Agencia'),
+          ('nit_agencia',       'RNC / NIT'),
+          ('direccion_agencia', 'Dirección'),
+          ('telefono_agencia',  'Teléfono'),
+          ('email_agencia',     'Correo Electrónico'),
+          ('moneda_simbolo',    'Símbolo Moneda'),
+        ] %}
+        <div class="flex items-center gap-4">
+          <label class="w-48 text-sm text-slate-500 flex-shrink-0">{{ label }}</label>
+          <input type="text" name="{{ clave }}" value="{{ conf.get(clave, '') }}"
+                 class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Crédito -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-4">
+      <h2 class="text-sm font-bold text-slate-700 mb-4 pb-2 border-b border-slate-100">💰 Parámetros de Crédito</h2>
+      <div class="space-y-3">
+        {% for clave, label in [
+          ('tasa_mora_diaria', 'Tasa Mora Diaria (%)'),
+          ('dias_gracia',      'Días de Gracia'),
+          ('tasa_default',     'Tasa de Interés Default (%)'),
+        ] %}
+        <div class="flex items-center gap-4">
+          <label class="w-48 text-sm text-slate-500 flex-shrink-0">{{ label }}</label>
+          <input type="text" name="{{ clave }}" value="{{ conf.get(clave, '') }}"
+                 class="w-40 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+        </div>
+        {% endfor %}
+
+        <div class="flex items-center gap-4">
+          <label class="w-48 text-sm text-slate-500 flex-shrink-0">Tipo de Tasa Default</label>
+          <select name="tipo_tasa_default" class="w-40 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+            {% for t in tipos_tasa %}
+            <option value="{{ t }}" {{ 'selected' if conf.get('tipo_tasa_default') == t }}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backup -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-4">
+      <h2 class="text-sm font-bold text-slate-700 mb-2 pb-2 border-b border-slate-100">🗄️ Respaldo de Datos</h2>
+      <p class="text-xs text-slate-400 mb-3">El sistema crea un backup automático cada vez que se inicia. Se conservan los últimos 7 respaldos.</p>
+      <form method="post" action="/backup" class="inline">
+        <button type="submit"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700">
+          💾 Hacer Backup Ahora
+        </button>
+      </form>
+    </div>
+
+    <!-- Save -->
+    <button type="submit"
+            class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors">
+      💾 Guardar Configuración
+    </button>
+
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% set cuota     = info.get('cuota', {}) %}
+{% set cancelacion = info.get('cancelacion', {}) %}
+{% set prestamo  = info.get('caja', {}) %}
+
+<div class="max-w-lg">
+
+  <!-- Loan header -->
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+    <p class="font-bold text-blue-800 text-sm">
+      {% if cuota %}{{ cuota.get('numero_cuota','') and 'Cuota #' + cuota.numero_cuota|string + ' — ' }}{% endif %}
+      Préstamo #{{ prestamo_id }}
+    </p>
+  </div>
+
+  <form hx-post="/caja/cobrar" hx-target="#resultado-cobro" hx-swap="innerHTML">
+    <input type="hidden" name="prestamo_id" value="{{ prestamo_id }}">
+
+    <!-- Tipo selector -->
+    <div class="mb-4">
+      <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tipo de Pago</p>
+      <div class="flex gap-3">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="tipo" value="CUOTA_NORMAL"
+                 {{ 'checked' if tipo == 'CUOTA_NORMAL' }}
+                 hx-get="/caja/calcular/{{ prestamo_id }}?tipo=CUOTA_NORMAL"
+                 hx-target="#panel-cobro"
+                 hx-swap="innerHTML"
+                 hx-trigger="change">
+          <span class="text-sm font-medium">Cuota Normal</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="tipo" value="CANCELACION_TOTAL"
+                 {{ 'checked' if tipo == 'CANCELACION_TOTAL' }}
+                 hx-get="/caja/calcular/{{ prestamo_id }}?tipo=CANCELACION_TOTAL"
+                 hx-target="#panel-cobro"
+                 hx-swap="innerHTML"
+                 hx-trigger="change">
+          <span class="text-sm font-medium">Cancelación Total</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Breakdown -->
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
+      <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Desglose</p>
+
+      {% if tipo == 'CUOTA_NORMAL' and cuota %}
+        {% set cap_pend = (cuota.capital - cuota.capital_pagado)|round(2) %}
+        {% set int_pend = (cuota.intereses - cuota.intereses_pagados)|round(2) %}
+        {% for label, val in [
+          ('Cuota #',      cuota.numero_cuota),
+          ('Vencimiento',  cuota.fecha_vencimiento),
+          ('Capital',      moneda + ' ' + '%.2f'|format(cap_pend)),
+          ('Intereses',    moneda + ' ' + '%.2f'|format(int_pend)),
+          ('Mora (' + cuota.dias_mora|string + ' días)', moneda + ' ' + '%.2f'|format(cuota.monto_mora)),
+          ('TOTAL',        moneda + ' ' + '%.2f'|format(cuota.total_a_cobrar)),
+        ] %}
+        <div class="flex justify-between py-1 {% if label == 'TOTAL' %}border-t border-slate-300 mt-2 pt-2 font-bold text-amber-700{% else %}text-sm{% endif %}">
+          <span class="text-slate-500">{{ label }}</span>
+          <span>{{ val }}</span>
+        </div>
+        {% endfor %}
+
+      {% elif tipo == 'CANCELACION_TOTAL' and cancelacion %}
+        {% for label, val in [
+          ('Capital',            moneda + ' ' + '%.2f'|format(cancelacion.capital)),
+          ('Intereses Pendientes', moneda + ' ' + '%.2f'|format(cancelacion.intereses_pendientes)),
+          ('Mora Total',         moneda + ' ' + '%.2f'|format(cancelacion.mora_total)),
+          ('TOTAL CANCELACIÓN',  moneda + ' ' + '%.2f'|format(cancelacion.total)),
+        ] %}
+        <div class="flex justify-between py-1 {% if label.startswith('TOTAL') %}border-t border-slate-300 mt-2 pt-2 font-bold text-amber-700{% else %}text-sm{% endif %}">
+          <span class="text-slate-500">{{ label }}</span>
+          <span>{{ val }}</span>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Method -->
+    <div class="mb-4">
+      <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Método de Pago</p>
+      <div class="grid grid-cols-2 gap-2">
+        {% for label, val in [('💵 Efectivo','EFECTIVO'),('🏦 Transferencia','TRANSFERENCIA'),('📄 Cheque','CHEQUE')] %}
+        <label class="flex items-center gap-2 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
+          <input type="radio" name="metodo_pago" value="{{ val }}" {{ 'checked' if loop.first }}>
+          <span class="text-sm">{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Reference -->
+    <div class="mb-4">
+      <label class="block text-xs font-semibold text-slate-500 mb-1">Referencia (opcional)</label>
+      <input type="text" name="referencia" placeholder="N° transferencia, cheque..."
+             class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+    </div>
+
+    <!-- Submit -->
+    <button type="submit"
+            class="w-full py-3 bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-colors">
+      ✅ Registrar Pago
+    </button>
+
+  </form>
+
+  <!-- Result area -->
+  <div id="resultado-cobro" class="mt-4"></div>
+
+</div>

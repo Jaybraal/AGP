@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# SQLite databases (datos locales — no subir)
+data/prestamos.db
+data/prestamos.db-shm
+data/prestamos.db-wal
+
+# Archivos generados
+data/recibos/
+data/reportes/
+data/backups/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Distribución / empaquetado
+*.spec
+dist/
+AGP Sistema.app/

@@ -1,0 +1,30 @@
+/* AGP — Custom CSS (complementa Tailwind) */
+
+/* Scrollbar minimalista */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* Tabla filas hover */
+tr.hover-row:hover td { background-color: #EFF6FF; }
+
+/* Input focus ring */
+input:focus, select:focus, textarea:focus {
+    outline: 2px solid #2563EB;
+    outline-offset: 0;
+}
+
+/* Transición suave HTMX */
+.htmx-swapping { opacity: 0; transition: opacity 0.1s; }
+.htmx-settling  { opacity: 1; transition: opacity 0.15s; }
+
+/* Loading spinner */
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator { display: inline-block; }
+
+/* Print */
+@media print {
+    aside, .no-print { display: none !important; }
+    main { margin: 0; }
+}

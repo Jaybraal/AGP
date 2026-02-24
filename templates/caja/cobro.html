@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Caja{% endblock %}
+
+{% block content %}
+<div class="flex flex-col h-full">
+
+  <!-- Header bar -->
+  <div class="bg-white border-b border-slate-200 px-5 py-3 flex items-center gap-4 flex-shrink-0">
+    <div class="flex-1">
+      <span class="font-semibold text-slate-700">💵 Caja del {{ caja.fecha }}</span>
+      <span class="text-slate-400 text-sm ml-3">Apertura: {{ caja.hora_apertura }}</span>
+      <span class="text-green-600 font-semibold text-sm ml-4">
+        Cobrado: {{ caja.total_cobrado|moneda(moneda) }}
+      </span>
+    </div>
+
+    <!-- Cerrar caja toggle -->
+    <button onclick="document.getElementById('cierre-panel').classList.toggle('hidden')"
+            class="px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700">
+      🔒 Cerrar Caja
+    </button>
+  </div>
+
+  <!-- Cierre panel (hidden by default) -->
+  <div id="cierre-panel" class="hidden bg-red-50 border-b border-red-200 px-5 py-4 flex-shrink-0">
+    <p class="font-semibold text-red-700 mb-3">Confirmar Cierre de Caja</p>
+    <form method="post" action="/caja/cerrar" class="flex items-end gap-4">
+      <div>
+        <label class="block text-xs font-semibold text-red-600 mb-1">Efectivo Contado (RD$)</label>
+        <input type="number" step="0.01" name="monto_cierre"
+               value="{{ (caja.monto_apertura + caja.total_cobrado)|round(2) }}"
+               class="border border-red-300 rounded-lg px-3 py-2 text-sm w-40 bg-white">
+      </div>
+      <div class="flex-1">
+        <label class="block text-xs font-semibold text-red-600 mb-1">Notas</label>
+        <input type="text" name="notas" placeholder="Observaciones..."
+               class="w-full border border-red-300 rounded-lg px-3 py-2 text-sm bg-white">
+      </div>
+      <button type="submit"
+              class="px-5 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700"
+              onclick="return confirm('¿Confirmar cierre de caja?')">
+        Confirmar Cierre
+      </button>
+      <button type="button" onclick="document.getElementById('cierre-panel').classList.add('hidden')"
+              class="px-4 py-2 border border-red-300 text-red-600 rounded-lg text-sm hover:bg-red-100">
+        Cancelar
+      </button>
+    </form>
+  </div>
+
+  <!-- Two-column body -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Left: Search -->
+    <div class="w-80 border-r border-slate-200 bg-slate-50 flex flex-col flex-shrink-0">
+      <div class="p-4 border-b border-slate-200 bg-white">
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Buscar Préstamo</p>
+        <input type="text" id="busqueda" placeholder="N° préstamo, nombre o cédula..."
+               class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
+               hx-get="/caja/buscar"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#resultados-busqueda"
+               hx-indicator="#search-spinner"
+               name="q"
+               autocomplete="off">
+        <span id="search-spinner" class="htmx-indicator text-xs text-slate-400 mt-1 block">Buscando...</span>
+      </div>
+      <div id="resultados-busqueda" class="flex-1 overflow-y-auto p-3 space-y-2">
+        <p class="text-xs text-slate-400 text-center pt-4">Escribe para buscar préstamos</p>
+      </div>
+    </div>
+
+    <!-- Right: Payment panel -->
+    <div class="flex-1 overflow-y-auto p-5">
+      <div id="panel-cobro">
+        <div class="flex flex-col items-center justify-center h-64 text-slate-400">
+          <span class="text-4xl mb-3">←</span>
+          <p class="font-medium">Busca y selecciona un préstamo</p>
+          <p class="text-sm">para iniciar el cobro</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

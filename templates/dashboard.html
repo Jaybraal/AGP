@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Panel Principal{% endblock %}
+
+{% block content %}
+<div class="p-6">
+
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-800">Panel Principal</h1>
+    <p class="text-slate-400 text-sm mt-0.5">{{ hoy.strftime('%A, %d de %B de %Y') }}</p>
+  </div>
+
+  <!-- Metrics -->
+  <div class="grid grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+
+    {% set metrics = [
+      ('Préstamos Activos', datos.prestamos_activos, '📋', 'border-blue-400',   'text-blue-600'),
+      ('En Mora',           datos.prestamos_vencidos,'⚠️', 'border-red-400',    'text-red-600'),
+      ('Cobrado Hoy',       datos.cobrado_hoy|moneda,'💰', 'border-green-400',  'text-green-600'),
+      ('Clientes Total',    datos.clientes_total,    '👥', 'border-slate-300',  'text-slate-700'),
+      ('Cartera Total',     datos.cartera_total|moneda,'💼','border-amber-400', 'text-amber-600'),
+    ] %}
+
+    {% for label, valor, icon, border, color in metrics %}
+    <div class="bg-white rounded-xl border-l-4 {{ border }} shadow-sm p-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">{{ label }}</p>
+          <p class="text-2xl font-bold {{ color }}">{{ valor }}</p>
+        </div>
+        <span class="text-2xl opacity-60">{{ icon }}</span>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <!-- Quick actions -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">⚡ Acciones Rápidas</h2>
+    <div class="flex flex-wrap gap-3">
+      <a href="/clientes/nuevo"
+         class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">
+        ➕ Nuevo Cliente
+      </a>
+      <a href="/prestamos/nuevo"
+         class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
+        📋 Nuevo Préstamo
+      </a>
+      <a href="/caja"
+         class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
+        💵 Ir a Caja
+      </a>
+      <a href="/reportes"
+         class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
+        📊 Reportes
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

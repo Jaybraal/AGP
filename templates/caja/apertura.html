@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Abrir Caja{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center h-full p-6">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 w-full max-w-md text-center">
+
+    <div class="text-6xl mb-4">💵</div>
+    <h1 class="text-2xl font-bold text-slate-800 mb-1">Apertura de Caja</h1>
+    <p class="text-slate-400 text-sm mb-8">No hay sesión de caja abierta para hoy.</p>
+
+    <form method="post" action="/caja/apertura">
+      <div class="text-left mb-6">
+        <label class="block text-sm font-semibold text-slate-600 mb-2">Monto de Apertura (RD$)</label>
+        <input type="number" step="0.01" name="monto_apertura" value="0" min="0"
+               class="w-full border border-slate-200 rounded-xl px-4 py-3 text-xl font-bold text-center focus:border-blue-500"
+               autofocus>
+        <p class="text-xs text-slate-400 mt-1 text-center">Efectivo inicial en caja</p>
+      </div>
+
+      <button type="submit"
+              class="w-full py-3 bg-green-600 text-white rounded-xl font-bold text-base hover:bg-green-700 transition-colors">
+        🔓 Abrir Caja
+      </button>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
