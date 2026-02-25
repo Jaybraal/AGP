@@ -26,8 +26,14 @@ jobs:
       - name: Compilar con PyInstaller
         run: pyinstaller AGP-windows.spec
 
+      - name: Verificar contenido dist
+        run: Get-ChildItem -Recurse dist | Select-Object FullName | head -20
+
       - name: Comprimir resultado
-        run: Compress-Archive -Path dist\AGP\* -DestinationPath AGP-Windows.zip
+        run: |
+          $src = Get-Item "dist\AGP"
+          if (-not $src) { $src = Get-Item "dist\*" | Select-Object -First 1 }
+          Compress-Archive -Path "$($src.FullName)" -DestinationPath AGP-Windows.zip -Force
 
       - name: Crear Release y subir ZIP
         uses: softprops/action-gh-release@v2
