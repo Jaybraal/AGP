@@ -27,7 +27,7 @@ jobs:
         run: pyinstaller AGP-windows.spec
 
       - name: Comprimir resultado
-        run: Compress-Archive -Path dist/AGP -DestinationPath AGP-Windows.zip
+        run: Compress-Archive -Path dist\AGP\* -DestinationPath AGP-Windows.zip
 
       - name: Crear Release y subir ZIP
         uses: softprops/action-gh-release@v2
