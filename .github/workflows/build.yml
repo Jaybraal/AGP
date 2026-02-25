@@ -6,6 +6,9 @@ on:
     tags:
       - 'v*'               # se ejecuta automáticamente al crear un tag v1.0, v1.1, etc.
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     name: Compilar para Windows
