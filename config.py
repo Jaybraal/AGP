@@ -5,9 +5,11 @@ import sys
 # ~/Library/Application Support/AGP para que sean escribibles.
 # En modo desarrollo se usa la carpeta del proyecto normalmente.
 if getattr(sys, 'frozen', False):
-    _APP_SUPPORT = os.path.join(
-        os.path.expanduser('~'), 'Library', 'Application Support', 'AGP'
-    )
+    # Windows: %APPDATA%\AGP  |  macOS: ~/Library/Application Support/AGP
+    if sys.platform == 'win32':
+        _APP_SUPPORT = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'AGP')
+    else:
+        _APP_SUPPORT = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support', 'AGP')
     BASE_DIR   = _APP_SUPPORT
     ASSETS_DIR = os.path.join(sys._MEIPASS, 'assets')
 else:

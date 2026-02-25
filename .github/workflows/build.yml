@@ -1,0 +1,48 @@
+name: Build y Release AGP
+
+on:
+  workflow_dispatch:        # permite lanzarlo manualmente desde GitHub
+  push:
+    tags:
+      - 'v*'               # se ejecuta automáticamente al crear un tag v1.0, v1.1, etc.
+
+jobs:
+  build-windows:
+    name: Compilar para Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Instalar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: pip install PyQt6 flask python-dateutil fpdf2 openpyxl pyinstaller
+
+      - name: Compilar con PyInstaller
+        run: pyinstaller AGP-windows.spec
+
+      - name: Comprimir resultado
+        run: Compress-Archive -Path dist/AGP -DestinationPath AGP-Windows.zip
+
+      - name: Crear Release y subir ZIP
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name || 'v1.0' }}
+          name: AGP Sistema v${{ github.ref_name || '1.0' }}
+          body: |
+            ## AGP — Sistema de Gestión de Préstamos
+
+            ### Windows
+            1. Descarga `AGP-Windows.zip`
+            2. Descomprime la carpeta
+            3. Doble clic en `AGP.exe`
+
+            > No requiere instalar Python ni ninguna dependencia.
+          files: AGP-Windows.zip
+          draft: false
+          prerelease: false
