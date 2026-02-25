@@ -296,9 +296,12 @@ def reporte_pdf_caja():
     fecha = request.args.get("fecha", date.today().isoformat())
     try:
         from services.pdf_generator import generar_reporte_caja
-        import subprocess
+        import subprocess, platform
         path = generar_reporte_caja(fecha)
-        subprocess.Popen(["open", path])
+        if platform.system() == "Windows":
+            os.startfile(path)
+        else:
+            subprocess.Popen(["open", path])
         flash("PDF generado y abierto.", "success")
     except Exception as e:
         flash(str(e), "danger")
@@ -321,8 +324,11 @@ def reporte_excel(tipo):
             from controllers.reporte_controller import caja as rep_caja
             from services.excel_exporter import exportar_caja
             path = exportar_caja(rep_caja(fecha))
-        import subprocess
-        subprocess.Popen(["open", path])
+        import subprocess, platform
+        if platform.system() == "Windows":
+            os.startfile(path)
+        else:
+            subprocess.Popen(["open", path])
         flash("Excel generado.", "success")
     except Exception as e:
         flash(str(e), "danger")

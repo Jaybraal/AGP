@@ -27,7 +27,7 @@ jobs:
         run: pip install PyQt6 flask python-dateutil fpdf2 openpyxl pyinstaller
 
       - name: Compilar con PyInstaller
-        run: pyinstaller AGP-windows.spec
+        run: pyinstaller AGP-web-windows.spec
 
       - name: Verificar contenido dist
         run: Get-ChildItem -Recurse dist | Select-Object FullName | head -20
