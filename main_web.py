@@ -25,4 +25,15 @@ if __name__ == "__main__":
     bootstrap()
     threading.Thread(target=_abrir_navegador, daemon=True).start()
     from app_web import app
+    import traceback
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        return (
+            f"<pre style='color:red;padding:20px'>"
+            f"ERROR:\n{traceback.format_exc()}"
+            f"</pre>",
+            500,
+        )
+
     app.run(debug=False, port=8080, host="127.0.0.1", use_reloader=False)

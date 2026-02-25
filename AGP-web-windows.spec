@@ -1,9 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import collect_submodules, collect_data_files
+from PyInstaller.utils.hooks import collect_submodules, collect_data_files, collect_all
 
 block_cipher = None
 
+fpdf_datas, fpdf_bins, fpdf_hidden = collect_all('fpdf')
+openpyxl_datas, openpyxl_bins, openpyxl_hidden = collect_all('openpyxl')
+
 hiddenimports = (
+    fpdf_hidden + openpyxl_hidden +
     collect_submodules('flask') +
     collect_submodules('jinja2') +
     collect_submodules('werkzeug') +
@@ -37,13 +41,13 @@ hiddenimports = (
 a = Analysis(
     ['main_web.py'],
     pathex=['.'],
-    binaries=[],
     datas=[
         ('assets',    'assets'),
         ('templates', 'templates'),
         ('static',    'static'),
         ('config.py', '.'),
-    ],
+    ] + fpdf_datas + openpyxl_datas,
+    binaries=fpdf_bins + openpyxl_bins,
     hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[],
