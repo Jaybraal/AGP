@@ -24,7 +24,7 @@ def previsualizar(datos: dict) -> dict:
         plazo=int(datos["plazo"]),
         frecuencia_pago=datos["frecuencia_pago"],
         tipo_amortizacion=datos["tipo_amortizacion"],
-        fecha_inicio=date.fromisoformat(datos["fecha_inicio"]),
+        fecha_inicio=date.fromisoformat(datos["fecha_inicio"]) if datos.get("fecha_inicio") else date.today(),
     )
 
 
@@ -55,7 +55,7 @@ def crear(cliente_id: int, datos: dict) -> int:
         "plazo":            int(datos["plazo"]),
         "frecuencia_pago":  datos["frecuencia_pago"],
         "tipo_amortizacion": datos["tipo_amortizacion"],
-        "fecha_inicio":     datos["fecha_inicio"],
+        "fecha_inicio":     datos["fecha_inicio"] if datos.get("fecha_inicio") else date.today().isoformat(),
         "fecha_vencimiento": resultado["fecha_vencimiento"].isoformat(),
         "cuota_base":       resultado["cuota_base"],
         "total_intereses":  resultado["total_intereses"],

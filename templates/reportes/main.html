@@ -38,7 +38,7 @@
     </a>
   </form>
 
-  {% if reporte_caja %}
+  {% if reporte_caja and reporte_caja.caja %}
   {% set t = reporte_caja.totales %}
   <div class="grid grid-cols-5 gap-3 mb-5">
     {% for label, val in [

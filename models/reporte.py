@@ -11,7 +11,10 @@ def reporte_caja_dia(fecha: str) -> dict:
     ).fetchone()
 
     if not caja:
-        return {"fecha": fecha, "caja": None, "pagos": [], "totales": {}}
+        return {"fecha": fecha, "caja": None, "pagos": [], "totales": {
+            "total_capital": 0, "total_intereses": 0,
+            "total_mora": 0, "total_cobrado": 0, "num_pagos": 0,
+        }}
 
     pagos = conn.execute(
         """SELECT p.*,
