@@ -24,7 +24,7 @@ def previsualizar(datos: dict) -> dict:
         plazo=int(datos["plazo"]),
         frecuencia_pago=datos["frecuencia_pago"],
         tipo_amortizacion=datos["tipo_amortizacion"],
-        fecha_inicio=date.fromisoformat(datos["fecha_inicio"]) if datos.get("fecha_inicio") else date.today(),
+        fecha_inicio=date.fromisoformat(str(datos["fecha_inicio"])[:10]) if datos.get("fecha_inicio") else date.today(),
     )
 
 

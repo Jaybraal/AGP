@@ -24,13 +24,13 @@ jobs:
           python-version: '3.11'
 
       - name: Instalar dependencias
-        run: pip install PyQt6 flask python-dateutil fpdf2 openpyxl pyinstaller
+        run: pip install flask python-dateutil fpdf2 openpyxl pywebview pythonnet pyinstaller
 
       - name: Compilar con PyInstaller
         run: pyinstaller AGP-web-windows.spec
 
       - name: Verificar contenido dist
-        run: Get-ChildItem -Recurse dist | Select-Object FullName | head -20
+        run: Get-ChildItem -Recurse dist | Select-Object -ExpandProperty FullName | Select-Object -First 20
 
       - name: Comprimir resultado
         run: |
@@ -41,17 +41,18 @@ jobs:
       - name: Crear Release y subir ZIP
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name || 'v1.0' }}
-          name: AGP Sistema v${{ github.ref_name || '1.0' }}
+          tag_name: ${{ github.ref_name || 'v1.8' }}
+          name: AGP Sistema ${{ github.ref_name || 'v1.8' }}
           body: |
             ## AGP — Sistema de Gestión de Préstamos
 
-            ### Windows
+            ### Windows (versión web con ventana nativa)
             1. Descarga `AGP-Windows.zip`
             2. Descomprime la carpeta
             3. Doble clic en `AGP.exe`
 
-            > No requiere instalar Python ni ninguna dependencia.
+            > No requiere instalar Python, navegador ni ninguna dependencia adicional.
+            > La aplicación abre en su propia ventana (ya no en el navegador).
           files: AGP-Windows.zip
           draft: false
           prerelease: false

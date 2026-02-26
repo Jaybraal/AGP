@@ -37,7 +37,7 @@ def calcular_cuota_con_mora(cuota: dict, hoy: Optional[date] = None) -> dict:
 
     mora_info = calcular_mora_cuota(
         saldo_pendiente=pendiente,
-        fecha_vencimiento=date.fromisoformat(cuota["fecha_vencimiento"]),
+        fecha_vencimiento=date.fromisoformat(str(cuota["fecha_vencimiento"] or "")[:10]),
         fecha_calculo=hoy,
         tasa_mora_diaria=_tasa_mora(),
         dias_gracia=_dias_gracia(),
