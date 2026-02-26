@@ -24,7 +24,7 @@ jobs:
           python-version: '3.11'
 
       - name: Instalar dependencias
-        run: pip install flask python-dateutil fpdf2 openpyxl pywebview pythonnet pyinstaller
+        run: pip install flask python-dateutil fpdf2 openpyxl pyinstaller
 
       - name: Compilar con PyInstaller
         run: pyinstaller AGP-web-windows.spec

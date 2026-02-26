@@ -1,18 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import collect_submodules, collect_data_files, collect_all
+from PyInstaller.utils.hooks import collect_submodules, collect_all
 
 block_cipher = None
 
 fpdf_datas, fpdf_bins, fpdf_hidden = collect_all('fpdf')
 openpyxl_datas, openpyxl_bins, openpyxl_hidden = collect_all('openpyxl')
-webview_datas, webview_bins, webview_hidden = collect_all('webview')
 
 hiddenimports = (
-    fpdf_hidden + openpyxl_hidden + webview_hidden +
+    fpdf_hidden + openpyxl_hidden +
     collect_submodules('flask') +
     collect_submodules('jinja2') +
     collect_submodules('werkzeug') +
-    collect_submodules('webview') +
     [
         'controllers.cliente_controller',
         'controllers.prestamo_controller',
@@ -37,9 +35,6 @@ hiddenimports = (
         'fpdf',
         'openpyxl',
         'dateutil',
-        # pywebview backends Windows
-        'webview.platforms.winforms',
-        'clr',
     ]
 )
 
@@ -51,8 +46,8 @@ a = Analysis(
         ('templates', 'templates'),
         ('static',    'static'),
         ('config.py', '.'),
-    ] + fpdf_datas + openpyxl_datas + webview_datas,
-    binaries=fpdf_bins + openpyxl_bins + webview_bins,
+    ] + fpdf_datas + openpyxl_datas,
+    binaries=fpdf_bins + openpyxl_bins,
     hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[],
