@@ -6,7 +6,18 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from flask import Flask, render_template, request, redirect, url_for, flash
 from datetime import date
 
-app = Flask(__name__)
+# En bundle PyInstaller los recursos están en sys._MEIPASS;
+# en desarrollo están junto al propio archivo.
+if getattr(sys, "frozen", False):
+    _BASE = sys._MEIPASS
+else:
+    _BASE = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(
+    __name__,
+    template_folder=os.path.join(_BASE, "templates"),
+    static_folder=os.path.join(_BASE, "static"),
+)
 app.secret_key = "agp-secret-2026"
 
 # ── Filtros Jinja2 ────────────────────────────────────────────────────────────

@@ -3,3 +3,4 @@ python-dateutil>=2.8
 fpdf2>=2.7
 openpyxl>=3.1
 PyQt6>=6.4
+PyQt6-WebEngine>=6.4

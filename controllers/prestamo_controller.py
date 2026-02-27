@@ -1,6 +1,6 @@
-from typing import Optional, List
 """Business logic for loan creation and management."""
 
+from typing import Optional, List
 from datetime import date
 from services.amortizacion import calcular_prestamo
 from models.prestamo import (
@@ -8,6 +8,19 @@ from models.prestamo import (
     obtener_prestamo, listar_prestamos, buscar_prestamos,
     obtener_cuotas, obtener_proxima_cuota,
 )
+
+
+def _parse_fecha(valor) -> date:
+    """Convierte cualquier representación de fecha a date, con fallback a hoy."""
+    if not valor:
+        return date.today()
+    s = str(valor).strip()
+    if len(s) < 10 or s.lower() in ("none", "null", ""):
+        return date.today()
+    try:
+        return date.fromisoformat(s[:10])
+    except (ValueError, TypeError):
+        return date.today()
 
 
 def previsualizar(datos: dict) -> dict:
@@ -24,7 +37,7 @@ def previsualizar(datos: dict) -> dict:
         plazo=int(datos["plazo"]),
         frecuencia_pago=datos["frecuencia_pago"],
         tipo_amortizacion=datos["tipo_amortizacion"],
-        fecha_inicio=date.fromisoformat(str(datos["fecha_inicio"])[:10]) if datos.get("fecha_inicio") else date.today(),
+        fecha_inicio=_parse_fecha(datos.get("fecha_inicio")),
     )
 
 
@@ -55,7 +68,7 @@ def crear(cliente_id: int, datos: dict) -> int:
         "plazo":            int(datos["plazo"]),
         "frecuencia_pago":  datos["frecuencia_pago"],
         "tipo_amortizacion": datos["tipo_amortizacion"],
-        "fecha_inicio":     datos["fecha_inicio"] if datos.get("fecha_inicio") else date.today().isoformat(),
+        "fecha_inicio":     _parse_fecha(datos.get("fecha_inicio")).isoformat(),
         "fecha_vencimiento": resultado["fecha_vencimiento"].isoformat(),
         "cuota_base":       resultado["cuota_base"],
         "total_intereses":  resultado["total_intereses"],
