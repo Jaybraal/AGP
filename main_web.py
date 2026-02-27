@@ -40,7 +40,6 @@ if __name__ == "__main__":
 
     from PyQt6.QtWidgets import QApplication, QMainWindow
     from PyQt6.QtWebEngineWidgets import QWebEngineView
-    from PyQt6.QtWebEngineCore import QWebEngineProfile
     from PyQt6.QtCore import QUrl, QTimer
     from PyQt6.QtGui import QIcon
 
@@ -53,7 +52,7 @@ if __name__ == "__main__":
     window.setMinimumSize(APP_MIN_W, APP_MIN_H)
 
     # Ícono si existe
-    icon_path = os.path.join(ASSETS_DIR, "logo.png")
+    icon_path = os.path.join(ASSETS_DIR, "icon.png")
     if os.path.exists(icon_path):
         window.setWindowIcon(QIcon(icon_path))
 
