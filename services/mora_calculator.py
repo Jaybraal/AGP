@@ -54,8 +54,11 @@ def calcular_mora_prestamo(
     """
     resultado = []
     for c in cuotas_pendientes:
-        _fv = str(c["fecha_vencimiento"] or "")
-        fecha_vcto = date.fromisoformat(_fv[:10]) if len(_fv) >= 10 else date.today()
+        _fv = str(c["fecha_vencimiento"] or "").strip()
+        try:
+            fecha_vcto = date.fromisoformat(_fv[:10]) if len(_fv) >= 10 else date.today()
+        except (ValueError, TypeError):
+            fecha_vcto = date.today()
         pendiente  = round(
             c["cuota_total"] - c["capital_pagado"] - c["intereses_pagados"], 2
         )

@@ -152,7 +152,8 @@ def prestamo_nuevo():
                                    cliente_id=cliente_id, active_section="prestamos")
     clientes   = todos_clientes()
     cliente_id = request.args.get("cliente_id", "")
-    return render_template("prestamos/form.html", datos={},
+    return render_template("prestamos/form.html",
+                           datos={"fecha_inicio": date.today().isoformat()},
                            clientes=clientes, frecuencias=FRECUENCIAS,
                            tipos_amort=TIPOS_AMORT, tipos_tasa=TIPOS_TASA,
                            cliente_id=cliente_id, active_section="prestamos")
@@ -283,22 +284,28 @@ def caja_cerrar():
 def reportes():
     tab   = request.args.get("tab", "caja")
     fecha = request.args.get("fecha", date.today().isoformat())
-    dias  = int(request.args.get("dias", 30) or 30)
-    data  = {}
-    if tab == "caja":
-        from controllers.reporte_controller import caja as rep_caja
-        data["reporte_caja"] = rep_caja(fecha)
-        data["fecha"] = fecha
-    elif tab == "mora":
-        from controllers.reporte_controller import mora
-        data["mora"] = mora()
-    elif tab == "proyeccion":
-        from controllers.reporte_controller import proyeccion
-        data["proyeccion"] = proyeccion(dias)
-        data["dias"] = dias
-    elif tab == "historial":
-        from models.caja import listar_cajas
-        data["cajas"] = listar_cajas(60)
+    try:
+        dias = int(request.args.get("dias", 30) or 30)
+    except (ValueError, TypeError):
+        dias = 30
+    # Siempre pasar fecha y dias al template (usados en la barra de tabs)
+    data = {"fecha": fecha, "dias": dias}
+    try:
+        if tab == "caja":
+            from controllers.reporte_controller import caja as rep_caja
+            data["reporte_caja"] = rep_caja(fecha)
+        elif tab == "mora":
+            from controllers.reporte_controller import mora
+            data["mora"] = mora()
+        elif tab == "proyeccion":
+            from controllers.reporte_controller import proyeccion
+            data["proyeccion"] = proyeccion(dias)
+        elif tab == "historial":
+            from models.caja import listar_cajas
+            data["cajas"] = listar_cajas(60)
+    except Exception as e:
+        import traceback
+        data["error_reporte"] = traceback.format_exc()
     return render_template("reportes/main.html", tab=tab, **data,
                            active_section="reportes")
 

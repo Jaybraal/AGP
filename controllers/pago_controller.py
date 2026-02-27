@@ -1,9 +1,9 @@
-from typing import Optional, List
 """
 Payment processing controller — the most critical module.
 Orchestrates: mora calc → payment → cuota update → loan balance → caja.
 """
 
+from typing import Optional, List
 from datetime import date
 from database.seed import get_config
 from services.mora_calculator import (
@@ -35,9 +35,15 @@ def calcular_cuota_con_mora(cuota: dict, hoy: Optional[date] = None) -> dict:
     )
     pendiente = max(0.0, pendiente)
 
+    _fv = str(cuota["fecha_vencimiento"] or "").strip()
+    try:
+        fecha_vcto = date.fromisoformat(_fv[:10]) if len(_fv) >= 10 else date.today()
+    except (ValueError, TypeError):
+        fecha_vcto = date.today()
+
     mora_info = calcular_mora_cuota(
         saldo_pendiente=pendiente,
-        fecha_vencimiento=date.fromisoformat(str(cuota["fecha_vencimiento"] or "")[:10]),
+        fecha_vencimiento=fecha_vcto,
         fecha_calculo=hoy,
         tasa_mora_diaria=_tasa_mora(),
         dias_gracia=_dias_gracia(),
