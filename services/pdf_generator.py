@@ -158,7 +158,7 @@ class _ReporteA4(FPDF):
     def footer(self):
         self.set_y(-12)
         self.set_font("Helvetica", "I", 8)
-        self.cell(0, 5, f"Página {self.page_no()}  —  Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+        self.cell(0, 5, f"Pagina {self.page_no()}  -  Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
                   align="C")
 
 
