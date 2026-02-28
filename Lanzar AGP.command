@@ -21,7 +21,7 @@ if ! command -v python3 &>/dev/null; then
     exit 1
 fi
 
-# Verificar Flask
+# Verificar dependencias
 if ! python3 -c "import flask" &>/dev/null; then
     echo "📦  Instalando dependencias (solo la primera vez)..."
     pip3 install -r requirements.txt --quiet
@@ -33,21 +33,8 @@ fi
 lsof -ti:8080 | xargs kill -9 2>/dev/null
 sleep 0.5
 
-echo "🚀  Iniciando servidor..."
-python3 app_web.py &
-SERVER_PID=$!
-
-# Esperar a que el servidor arranque
-sleep 2
-
-# Abrir navegador
-echo "🌐  Abriendo en el navegador: http://127.0.0.1:8080"
-open http://127.0.0.1:8080
+echo "🚀  Iniciando aplicación de escritorio..."
+python3 main_web.py
 
 echo ""
-echo "✅  Sistema corriendo. No cierres esta ventana."
-echo "    Para detener el sistema, cierra esta ventana."
-echo "=================================================="
-
-# Mantener vivo hasta que el usuario cierre la ventana
-wait $SERVER_PID
+echo "✅  Aplicación cerrada."

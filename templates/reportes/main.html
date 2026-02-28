@@ -42,7 +42,11 @@
     </a>
   </form>
 
-  {% if reporte_caja and reporte_caja.caja %}
+  {% if reporte_caja and not reporte_caja.caja %}
+  <div class="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-5 py-4 text-sm">
+    No hay caja abierta para esta fecha. Abre la caja del día en la sección <strong>Caja</strong> antes de consultar el reporte.
+  </div>
+  {% elif reporte_caja and reporte_caja.caja %}
   {% set t = reporte_caja.totales %}
   <div class="grid grid-cols-5 gap-3 mb-5">
     {% for label, val in [
