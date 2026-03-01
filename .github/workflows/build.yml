@@ -32,27 +32,50 @@ jobs:
       - name: Verificar contenido dist
         run: Get-ChildItem -Recurse dist | Select-Object -ExpandProperty FullName | Select-Object -First 20
 
-      - name: Comprimir resultado
-        run: |
-          $src = Get-Item "dist\AGP"
-          if (-not $src) { $src = Get-Item "dist\*" | Select-Object -First 1 }
-          Compress-Archive -Path "$($src.FullName)" -DestinationPath AGP-Windows.zip -Force
+      - name: Instalar Inno Setup
+        run: choco install innosetup --yes --no-progress
 
-      - name: Crear Release y subir ZIP
+      - name: Compilar instalador con Inno Setup
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          & $iscc AGP-installer.iss
+        shell: pwsh
+
+      - name: Verificar que el instalador existe
+        run: |
+          if (Test-Path "AGP-Installer.exe") {
+            Write-Host "OK - AGP-Installer.exe generado correctamente"
+            (Get-Item "AGP-Installer.exe").Length / 1MB | ForEach-Object { Write-Host "Tamaño: $([math]::Round($_, 1)) MB" }
+          } else {
+            Write-Host "ERROR - No se encontró AGP-Installer.exe"
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Determinar tag de versión
+        id: version
+        run: |
+          if ("${{ github.ref_name }}" -match "^v") {
+            echo "tag=${{ github.ref_name }}" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "tag=v1.0-beta" >> $env:GITHUB_OUTPUT
+          }
+        shell: pwsh
+
+      - name: Crear Release y subir instalador
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name || 'v1.8' }}
-          name: AGP Sistema ${{ github.ref_name || 'v1.8' }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: AGP Sistema ${{ steps.version.outputs.tag }}
           body: |
             ## AGP — Sistema de Gestión de Préstamos
 
-            ### Windows (versión web con ventana nativa)
-            1. Descarga `AGP-Windows.zip`
-            2. Descomprime la carpeta
-            3. Doble clic en `AGP.exe`
+            ### Instalación en Windows
+            1. Descarga **AGP-Installer.exe**
+            2. Doble clic → siguiente → siguiente → listo
+            3. Abre la app desde el ícono en el Escritorio
 
             > No requiere instalar Python, navegador ni ninguna dependencia adicional.
-            > La aplicación abre en su propia ventana (ya no en el navegador).
-          files: AGP-Windows.zip
+          files: AGP-Installer.exe
           draft: false
           prerelease: false

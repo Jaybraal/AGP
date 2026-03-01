@@ -176,7 +176,7 @@ def generar_reporte_caja(fecha: str) -> str:
 
     # Title
     pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 8, f"REPORTE DE CAJA DIARIA  —  {fecha}", ln=1, align="C")
+    pdf.cell(0, 8, f"REPORTE DE CAJA DIARIA  -  {fecha}", ln=1, align="C")
     pdf.ln(4)
 
     # Summary
