@@ -14,6 +14,13 @@
       </div>
     </div>
     <div class="flex gap-2">
+      <form method="POST" action="/clientes/{{ cliente.id }}/eliminar"
+            onsubmit="return confirm('¿Eliminar a {{ cliente.nombres }} {{ cliente.apellidos }}? Esta acción no se puede deshacer.')">
+        <button type="submit"
+                class="px-4 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-50">
+          🗑️ Eliminar
+        </button>
+      </form>
       <a href="/clientes/{{ cliente.id }}/editar"
          class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50">
         ✏️ Editar

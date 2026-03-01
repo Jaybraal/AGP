@@ -20,9 +20,18 @@
         </div>
       </div>
     </div>
-    <a href="/caja" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700">
-      💵 Ir a Caja
-    </a>
+    <div class="flex gap-2">
+      <form method="POST" action="/prestamos/{{ prestamo.id }}/eliminar"
+            onsubmit="return confirm('¿Eliminar el préstamo {{ prestamo.numero_prestamo }}? Esta acción no se puede deshacer.')">
+        <button type="submit"
+                class="px-4 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-50">
+          🗑️ Eliminar
+        </button>
+      </form>
+      <a href="/caja" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700">
+        💵 Ir a Caja
+      </a>
+    </div>
   </div>
 
   <!-- Summary cards -->

@@ -109,6 +109,18 @@ def cliente_editar(cid):
                            tipos_tasa=TIPOS_TASA, modo="editar", cliente_id=cid,
                            active_section="clientes")
 
+@app.route("/clientes/<int:cid>/eliminar", methods=["POST"])
+def cliente_eliminar(cid):
+    from controllers.cliente_controller import eliminar, obtener
+    cliente = obtener(cid)
+    try:
+        eliminar(cid)
+        flash(f"Cliente {cliente['nombres']} {cliente['apellidos']} eliminado.", "success")
+        return redirect(url_for("clientes_lista"))
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for("cliente_perfil", cid=cid))
+
 @app.route("/clientes/<int:cid>")
 def cliente_perfil(cid):
     from controllers.cliente_controller import obtener
@@ -168,6 +180,21 @@ def prestamo_preview():
         return render_template("_partials/tabla_amortizacion.html", resultado=resultado)
     except Exception as e:
         return f'<p class="text-red-600 p-4 font-medium">⚠ {e}</p>'
+
+@app.route("/prestamos/<int:pid>/eliminar", methods=["POST"])
+def prestamo_eliminar(pid):
+    from controllers.prestamo_controller import eliminar, obtener
+    prestamo = obtener(pid)
+    cliente_id = prestamo["cliente_id"] if prestamo else None
+    try:
+        eliminar(pid)
+        flash(f"Préstamo {prestamo['numero_prestamo']} eliminado.", "success")
+        if cliente_id:
+            return redirect(url_for("cliente_perfil", cid=cliente_id))
+        return redirect(url_for("prestamos_lista"))
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for("prestamo_detalle", pid=pid))
 
 @app.route("/prestamos/<int:pid>")
 def prestamo_detalle(pid):

@@ -6,7 +6,7 @@ from services.amortizacion import calcular_prestamo
 from models.prestamo import (
     numero_prestamo_nuevo, crear_prestamo,
     obtener_prestamo, listar_prestamos, buscar_prestamos,
-    obtener_cuotas, obtener_proxima_cuota,
+    obtener_cuotas, obtener_proxima_cuota, eliminar_prestamo,
 )
 
 
@@ -99,3 +99,7 @@ def cuotas(prestamo_id: int, solo_pendientes: bool = False) -> List[dict]:
 
 def proxima_cuota(prestamo_id: int) -> Optional[dict]:
     return obtener_proxima_cuota(prestamo_id)
+
+
+def eliminar(prestamo_id: int):
+    eliminar_prestamo(prestamo_id)

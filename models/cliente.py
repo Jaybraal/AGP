@@ -108,6 +108,20 @@ def eliminar_garante(garante_id: int):
     conn.commit()
 
 
+def eliminar_cliente(cliente_id: int):
+    """Soft delete. Raises ValueError if client has active loans."""
+    conn = get_connection()
+    activos = conn.execute(
+        """SELECT COUNT(*) FROM prestamos
+           WHERE cliente_id = ? AND estado IN ('ACTIVO','AL_DIA','VENCIDO')""",
+        (cliente_id,),
+    ).fetchone()[0]
+    if activos:
+        raise ValueError("No se puede eliminar: el cliente tiene préstamos activos.")
+    conn.execute("UPDATE clientes SET activo = 0 WHERE id = ?", (cliente_id,))
+    conn.commit()
+
+
 def actualizar_calificacion(cliente_id: int, calificacion: str):
     conn = get_connection()
     conn.execute(

@@ -3,7 +3,7 @@ from typing import Optional, List
 
 from models.cliente import (
     crear_cliente, actualizar_cliente, obtener_cliente,
-    buscar_clientes, listar_clientes,
+    buscar_clientes, listar_clientes, eliminar_cliente,
 )
 
 
@@ -61,3 +61,7 @@ def todos() -> List[dict]:
 
 def obtener(cliente_id: int) -> Optional[dict]:
     return obtener_cliente(cliente_id)
+
+
+def eliminar(cliente_id: int):
+    eliminar_cliente(cliente_id)

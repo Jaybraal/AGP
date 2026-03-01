@@ -147,6 +147,19 @@ def actualizar_estado_prestamo(prestamo_id: int, estado: str):
     conn.commit()
 
 
+def eliminar_prestamo(prestamo_id: int):
+    """Hard delete. Raises ValueError if loan has payments (cuotas/garantes cascade)."""
+    conn = get_connection()
+    pagos = conn.execute(
+        "SELECT COUNT(*) FROM pagos WHERE prestamo_id = ? AND anulado = 0",
+        (prestamo_id,),
+    ).fetchone()[0]
+    if pagos:
+        raise ValueError("No se puede eliminar: el préstamo tiene pagos registrados.")
+    conn.execute("DELETE FROM prestamos WHERE id = ?", (prestamo_id,))
+    conn.commit()
+
+
 def actualizar_saldo_capital(prestamo_id: int, nuevo_saldo: float):
     conn = get_connection()
     conn.execute(
