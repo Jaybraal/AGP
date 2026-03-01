@@ -19,7 +19,13 @@ app = Flask(
     template_folder=os.path.join(_BASE, "templates"),
     static_folder=os.path.join(_BASE, "static"),
 )
-app.secret_key = "agp-secret-2026"
+app.secret_key = os.environ.get("SECRET_KEY", "agp-secret-2026")
+
+# ── Bootstrap DB (gunicorn + desarrollo) ──────────────────────────────────────
+from database.schema import crear_tablas
+from database.seed import insertar_defaults
+crear_tablas()
+insertar_defaults()
 
 # ── Autenticación ─────────────────────────────────────────────────────────────
 
@@ -451,6 +457,25 @@ def cambiar_password():
         flash("Contraseña actualizada correctamente.", "success")
     return redirect(url_for("configuracion"))
 
+# ── PWA ───────────────────────────────────────────────────────────────────────
+
+@app.route("/app-icon/<int:size>")
+def app_icon(size):
+    """Sirve el ícono redimensionado para el PWA manifest."""
+    from flask import send_file
+    import io
+    try:
+        from PIL import Image
+        icon_path = os.path.join(_BASE, "assets", "icon.png")
+        img = Image.open(icon_path).resize((size, size), Image.LANCZOS)
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        buf.seek(0)
+        return send_file(buf, mimetype="image/png")
+    except Exception:
+        # Si Pillow no está, devolver el ícono original
+        return send_file(os.path.join(_BASE, "assets", "icon.png"), mimetype="image/png")
+
 # ── Backup ────────────────────────────────────────────────────────────────────
 
 @app.route("/backup", methods=["POST"])
@@ -467,8 +492,4 @@ def hacer_backup():
 # ── Run ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    from database.schema import crear_tablas
-    from database.seed import insertar_defaults
-    crear_tablas()
-    insertar_defaults()
     app.run(debug=True, port=8080, host="127.0.0.1", use_reloader=False)

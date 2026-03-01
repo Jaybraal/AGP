@@ -12,6 +12,10 @@ if getattr(sys, 'frozen', False):
         _APP_SUPPORT = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support', 'AGP')
     BASE_DIR   = _APP_SUPPORT
     ASSETS_DIR = os.path.join(sys._MEIPASS, 'assets')
+elif os.environ.get('DATA_DIR'):
+    # Railway: volumen persistente montado en DATA_DIR=/data
+    BASE_DIR   = os.environ['DATA_DIR']
+    ASSETS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets')
 else:
     BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
     ASSETS_DIR = os.path.join(BASE_DIR, 'assets')

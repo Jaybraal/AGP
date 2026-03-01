@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AGP — {% block title %}Sistema de Préstamos{% endblock %}</title>
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#1E3A8A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AGP">
+  <link rel="apple-touch-icon" href="/app-icon/192">
   <script src="/static/js/tailwind.js"></script>
   <script src="/static/js/htmx.min.js"></script>
   <link rel="stylesheet" href="/static/css/style.css">
@@ -100,5 +106,10 @@
     </div>
 
   </main>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/js/sw.js');
+    }
+  </script>
 </body>
 </html>
