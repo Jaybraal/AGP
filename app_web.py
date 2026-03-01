@@ -467,4 +467,8 @@ def hacer_backup():
 # ── Run ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    from database.schema import crear_tablas
+    from database.seed import insertar_defaults
+    crear_tablas()
+    insertar_defaults()
     app.run(debug=True, port=8080, host="127.0.0.1", use_reloader=False)
