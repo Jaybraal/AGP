@@ -1,4 +1,5 @@
 from database.connection import get_connection
+from werkzeug.security import generate_password_hash
 
 DEFAULTS = [
     ("nombre_agencia",       "Agencia de Préstamos AGP",  "TEXT"),
@@ -19,6 +20,8 @@ DEFAULTS = [
     ("terminal_modo",        "DISPLAY",                   "TEXT"),   # DISPLAY o SERIAL
     ("tasa_default",         "5.0",                       "REAL"),   # tasa sugerida global
     ("tipo_tasa_default",    "MENSUAL",                   "TEXT"),
+    ("login_usuario",        "admin",                     "TEXT"),
+    ("login_password_hash",  "",                          "TEXT"),   # se rellena en insertar_defaults
 ]
 
 
@@ -29,6 +32,16 @@ def insertar_defaults():
         DEFAULTS
     )
     conn.commit()
+    # Si no hay contraseña asignada aún, poner la contraseña por defecto hasheada
+    row = conn.execute(
+        "SELECT valor FROM configuracion WHERE clave = 'login_password_hash'"
+    ).fetchone()
+    if not row or not row["valor"]:
+        conn.execute(
+            "INSERT OR REPLACE INTO configuracion (clave, valor, tipo) VALUES (?, ?, ?)",
+            ("login_password_hash", generate_password_hash("agp2026"), "TEXT")
+        )
+        conn.commit()
 
 
 def get_config(clave: str) -> str:

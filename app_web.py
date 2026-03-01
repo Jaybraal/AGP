@@ -3,7 +3,8 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
+from functools import wraps
 from datetime import date
 
 # En bundle PyInstaller los recursos están en sys._MEIPASS;
@@ -19,6 +20,40 @@ app = Flask(
     static_folder=os.path.join(_BASE, "static"),
 )
 app.secret_key = "agp-secret-2026"
+
+# ── Autenticación ─────────────────────────────────────────────────────────────
+
+_RUTAS_PUBLICAS = {"login", "static"}
+
+@app.before_request
+def verificar_sesion():
+    if request.endpoint in _RUTAS_PUBLICAS:
+        return
+    if not session.get("autenticado"):
+        return redirect(url_for("login"))
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if session.get("autenticado"):
+        return redirect(url_for("dashboard"))
+    if request.method == "POST":
+        from werkzeug.security import check_password_hash
+        from database.seed import get_config
+        usuario  = request.form.get("usuario", "").strip()
+        password = request.form.get("password", "")
+        usr_ok   = usuario == get_config("login_usuario")
+        pwd_ok   = check_password_hash(get_config("login_password_hash"), password)
+        if usr_ok and pwd_ok:
+            session["autenticado"] = True
+            session["usuario"]     = usuario
+            return redirect(url_for("dashboard"))
+        return render_template("login.html", error="Usuario o contraseña incorrectos.", usuario=usuario)
+    return render_template("login.html")
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 # ── Filtros Jinja2 ────────────────────────────────────────────────────────────
 
@@ -393,6 +428,28 @@ def configuracion():
     conf = get_all_config()
     return render_template("configuracion.html", conf=conf, tipos_tasa=TIPOS_TASA,
                            active_section="configuracion")
+
+# ── Cambiar contraseña ────────────────────────────────────────────────────────
+
+@app.route("/cambiar-password", methods=["POST"])
+def cambiar_password():
+    from werkzeug.security import check_password_hash, generate_password_hash
+    from database.seed import get_config, set_config
+    actual     = request.form.get("password_actual", "")
+    nueva      = request.form.get("password_nueva", "").strip()
+    confirmar  = request.form.get("password_confirmar", "").strip()
+    usuario    = request.form.get("usuario", "").strip()
+    if not check_password_hash(get_config("login_password_hash"), actual):
+        flash("La contraseña actual es incorrecta.", "danger")
+    elif len(nueva) < 4:
+        flash("La nueva contraseña debe tener al menos 4 caracteres.", "danger")
+    elif nueva != confirmar:
+        flash("Las contraseñas nuevas no coinciden.", "danger")
+    else:
+        set_config("login_usuario", usuario or get_config("login_usuario"))
+        set_config("login_password_hash", generate_password_hash(nueva))
+        flash("Contraseña actualizada correctamente.", "success")
+    return redirect(url_for("configuracion"))
 
 # ── Backup ────────────────────────────────────────────────────────────────────
 

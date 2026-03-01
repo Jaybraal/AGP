@@ -75,5 +75,41 @@
     </button>
 
   </form>
+
+  <!-- Cambiar contraseña -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mt-4">
+    <h2 class="text-sm font-bold text-slate-700 mb-4 pb-2 border-b border-slate-100">🔐 Acceso al Sistema</h2>
+    <form method="POST" action="/cambiar-password">
+      <div class="space-y-3">
+        <div class="flex items-center gap-4">
+          <label class="w-48 text-sm text-slate-500 flex-shrink-0">Usuario</label>
+          <input type="text" name="usuario" value="{{ conf.get('login_usuario', 'admin') }}"
+                 class="w-48 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+        </div>
+        <div class="flex items-center gap-4">
+          <label class="w-48 text-sm text-slate-500 flex-shrink-0">Contraseña actual</label>
+          <input type="password" name="password_actual" autocomplete="current-password"
+                 class="w-48 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+        </div>
+        <div class="flex items-center gap-4">
+          <label class="w-48 text-sm text-slate-500 flex-shrink-0">Nueva contraseña</label>
+          <input type="password" name="password_nueva" autocomplete="new-password"
+                 class="w-48 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+        </div>
+        <div class="flex items-center gap-4">
+          <label class="w-48 text-sm text-slate-500 flex-shrink-0">Confirmar contraseña</label>
+          <input type="password" name="password_confirmar" autocomplete="new-password"
+                 class="w-48 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="w-48"></div>
+          <button type="submit"
+                  class="px-4 py-2 bg-slate-700 text-white rounded-lg text-sm font-semibold hover:bg-slate-800">
+            Cambiar Contraseña
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}

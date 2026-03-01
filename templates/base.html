@@ -61,9 +61,17 @@
     </nav>
 
     <!-- Footer -->
-    <div class="px-4 py-3 border-t border-blue-800 flex items-center gap-2">
-      <div class="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
-      <span class="text-blue-300 text-xs">Sistema v1.0</span>
+    <div class="px-4 py-3 border-t border-blue-800">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
+        <span class="text-blue-300 text-xs">{{ session.get('usuario', 'admin') }}</span>
+      </div>
+      <form method="POST" action="/logout">
+        <button type="submit"
+                class="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-blue-300 hover:bg-blue-800 hover:text-white transition-colors">
+          <span>🚪</span> Cerrar Sesión
+        </button>
+      </form>
     </div>
   </aside>
 
