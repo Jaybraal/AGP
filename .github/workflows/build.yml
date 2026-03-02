@@ -10,85 +10,70 @@ permissions:
   contents: write
 
 jobs:
-  build-windows:
-    name: Compilar para Windows
-    runs-on: windows-latest
+  release:
+    name: Crear Release (ZIP)
+    runs-on: ubuntu-latest
 
     steps:
       - name: Descargar código
         uses: actions/checkout@v4
 
-      - name: Instalar Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Instalar dependencias
-        run: pip install flask python-dateutil fpdf2 openpyxl Pillow pyinstaller pyinstaller-hooks-contrib
-
-      - name: Convertir icono PNG a ICO
-        run: |
-          python -c "
-          from PIL import Image
-          img = Image.open('assets/icon.png')
-          img.save('assets/icon.ico', format='ICO', sizes=[(256,256),(128,128),(64,64),(32,32),(16,16)])
-          print('Icono convertido OK')
-          "
-        shell: pwsh
-
-      - name: Compilar con PyInstaller
-        run: pyinstaller AGP-web-windows.spec
-
-      - name: Verificar contenido dist
-        run: Get-ChildItem -Recurse dist | Select-Object -ExpandProperty FullName | Select-Object -First 30
-        shell: pwsh
-
-      - name: Instalar Inno Setup
-        run: choco install innosetup --yes --no-progress
-
-      - name: Compilar instalador con Inno Setup
-        run: |
-          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-          $tag = "${{ github.ref_name }}" -replace '^v', ''
-          & $iscc /DAppVersion=$tag AGP-installer.iss
-        shell: pwsh
-
-      - name: Verificar que el instalador existe
-        run: |
-          if (Test-Path "AGP-Installer.exe") {
-            Write-Host "OK - AGP-Installer.exe generado correctamente"
-            (Get-Item "AGP-Installer.exe").Length / 1MB | ForEach-Object { Write-Host "Tamaño: $([math]::Round($_, 1)) MB" }
-          } else {
-            Write-Host "ERROR - No se encontró AGP-Installer.exe"
-            exit 1
-          }
-        shell: pwsh
-
-      - name: Determinar tag de versión
+      - name: Determinar versión
         id: version
         run: |
-          if ("${{ github.ref_name }}" -match "^v") {
-            echo "tag=${{ github.ref_name }}" >> $env:GITHUB_OUTPUT
-          } else {
-            echo "tag=v1.0-beta" >> $env:GITHUB_OUTPUT
-          }
-        shell: pwsh
+          if [[ "${{ github.ref_name }}" == v* ]]; then
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=v1.0" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Crear Release y subir instalador
+      - name: Crear ZIP del proyecto
+        run: |
+          mkdir -p agp_release
+          # Copiar solo los archivos necesarios para ejecutar (no .git, no __pycache__, etc.)
+          rsync -av \
+            --exclude='.git' \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='.github' \
+            --exclude='build' \
+            --exclude='dist' \
+            --exclude='*.spec' \
+            --exclude='*.zip' \
+            --exclude='*.app' \
+            --exclude='venv' \
+            --exclude='.DS_Store' \
+            . agp_release/AGP/
+          cd agp_release
+          zip -r AGP-Windows.zip AGP/
+          ls -lh AGP-Windows.zip
+
+      - name: Crear Release y subir ZIP
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: AGP Sistema ${{ steps.version.outputs.tag }}
           body: |
-            ## AGP — Sistema de Gestión de Préstamos
+            ## AGP — Sistema de Gestión de Préstamos ${{ steps.version.outputs.tag }}
 
-            ### Instalación en Windows
-            1. Descarga **AGP-Installer.exe**
-            2. Doble clic → siguiente → siguiente → listo
-            3. El sistema abre automáticamente en tu navegador (Chrome, Edge, Firefox)
+            ### Instalación en Windows (solo la primera vez)
 
-            > No requiere instalar Python ni ninguna dependencia adicional.
-            > Compatible con Windows 10 y Windows 11.
-          files: AGP-Installer.exe
+            **Requisito previo:** tener Python instalado.
+            Si no lo tienes: https://www.python.org/downloads/
+            *(durante la instalación marca "Add Python to PATH")*
+
+            ### Pasos:
+            1. Descarga **AGP-Windows.zip** y extráelo (clic derecho → Extraer todo)
+            2. Entra a la carpeta `AGP`
+            3. Doble clic en **instalar_windows.bat** → espera que termine
+            4. Listo — queda un ícono **"AGP Sistema de Prestamos"** en el Escritorio
+
+            ### Uso diario:
+            Doble clic en el ícono del Escritorio. La app abre en una ventana propia.
+
+            ### Actualizar a nueva versión:
+            Descarga el nuevo ZIP, extráelo en la misma carpeta (reemplaza los archivos),
+            y vuelve a ejecutar **instalar_windows.bat**.
+          files: agp_release/AGP-Windows.zip
           draft: false
           prerelease: false

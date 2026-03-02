@@ -29,7 +29,7 @@ echo.
 echo Instalando dependencias...
 echo.
 python -m pip install --upgrade pip --quiet
-python -m pip install PyQt6 flask python-dateutil fpdf2 openpyxl --quiet
+python -m pip install flask python-dateutil fpdf2 openpyxl Pillow werkzeug --quiet
 
 if errorlevel 1 (
     echo [ERROR] Fallo la instalacion de dependencias.
@@ -51,7 +51,7 @@ echo Set oWS = WScript.CreateObject^("WScript.Shell"^)
 echo sLinkFile = oWS.SpecialFolders^("Desktop"^) ^& "\AGP Sistema de Prestamos.lnk"
 echo Set oLink = oWS.CreateShortcut^(sLinkFile^)
 echo oLink.TargetPath = "pythonw.exe"
-echo oLink.Arguments = """%SCRIPT_DIR%\main.py"""
+echo oLink.Arguments = """%SCRIPT_DIR%\main_web.py"""
 echo oLink.WorkingDirectory = "%SCRIPT_DIR%"
 echo oLink.Description = "Sistema de Gestion de Prestamos AGP"
 echo oLink.Save
@@ -67,7 +67,9 @@ echo   Instalacion completada con exito!
 echo ================================================
 echo.
 echo Puedes iniciar el sistema desde:
-echo   - El acceso directo "AGP Sistema de Prestamos" en el Escritorio
-echo   - O ejecutando "ejecutar_agp.bat" en esta carpeta
+echo   Haz doble clic en "AGP Sistema de Prestamos" en el Escritorio.
+echo.
+echo La primera vez pedira usuario y contrasena.
+echo (Por defecto: admin / admin1234)
 echo.
 pause
