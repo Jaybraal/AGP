@@ -365,8 +365,19 @@ def reportes():
         dias = int(request.args.get("dias", 30) or 30)
     except (ValueError, TypeError):
         dias = 30
-    # Siempre pasar fecha y dias al template (usados en la barra de tabs)
-    data = {"fecha": fecha, "dias": dias}
+
+    # Inicializar TODAS las variables con valores seguros para evitar
+    # UndefinedError en Jinja2 cuando la carga de datos falla
+    data = {
+        "fecha":         fecha,
+        "dias":          dias,
+        "reporte_caja":  None,
+        "mora":          [],
+        "proyeccion":    [],
+        "cajas":         [],
+        "error_reporte": None,
+    }
+
     try:
         if tab == "caja":
             from controllers.reporte_controller import caja as rep_caja
@@ -380,9 +391,10 @@ def reportes():
         elif tab == "historial":
             from models.caja import listar_cajas
             data["cajas"] = listar_cajas(60)
-    except Exception as e:
+    except Exception:
         import traceback
         data["error_reporte"] = traceback.format_exc()
+
     return render_template("reportes/main.html", tab=tab, **data,
                            active_section="reportes")
 

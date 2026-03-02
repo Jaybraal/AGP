@@ -1,14 +1,15 @@
-"""Lanzador web — Flask en hilo + pywebview (usa WebView2/Edge en Windows, nativo en macOS)."""
+"""Lanzador web — Flask en hilo + tkinter como ventana de control."""
 
 import os
 import sys
 import threading
 import socket
 import time
+import webbrowser
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import RECEIPTS_DIR, REPORTS_DIR, APP_WIDTH, APP_HEIGHT, APP_TITLE
+from config import RECEIPTS_DIR, REPORTS_DIR, APP_TITLE
 from database.schema import crear_tablas
 from database.seed import insertar_defaults
 
@@ -59,7 +60,6 @@ def _iniciar_flask():
 
 
 def _esperar_flask(timeout=15):
-    """Espera hasta que Flask esté respondiendo o se agote el tiempo."""
     inicio = time.time()
     while time.time() - inicio < timeout:
         try:
@@ -70,27 +70,63 @@ def _esperar_flask(timeout=15):
     return False
 
 
+def _abrir_navegador():
+    webbrowser.open(f"http://127.0.0.1:{PORT}")
+
+
 if __name__ == "__main__":
     _liberar_puerto()
     bootstrap()
 
-    # Arrancar Flask en hilo daemon ANTES de abrir la ventana
+    # Arrancar Flask en hilo daemon
     threading.Thread(target=_iniciar_flask, daemon=True).start()
 
-    # Esperar a que Flask esté listo antes de abrir la ventana
+    # Esperar a que Flask esté listo
     _esperar_flask()
 
-    import webview
+    # Abrir el navegador del sistema automáticamente
+    _abrir_navegador()
 
-    # pywebview usa WebView2/Edge en Windows, WebKit en macOS/Linux
-    # No requiere empaquetar Chromium — usa el motor del sistema operativo
-    webview.create_window(
-        title=APP_TITLE,
-        url=f"http://127.0.0.1:{PORT}",
-        width=APP_WIDTH,
-        height=APP_HEIGHT,
-        min_size=(1100, 650),
-        text_select=False,
-    )
+    # Ventana de control con tkinter (viene incluido en Python, sin dependencias extra)
+    import tkinter as tk
 
-    webview.start()
+    root = tk.Tk()
+    root.title(APP_TITLE)
+    root.geometry("320x140")
+    root.resizable(False, False)
+    # Centrar en pantalla
+    root.eval("tk::PlaceWindow . center")
+
+    frame = tk.Frame(root, padx=20, pady=16)
+    frame.pack(fill="both", expand=True)
+
+    tk.Label(
+        frame,
+        text="AGP — Sistema de Gestión de Préstamos",
+        font=("Segoe UI", 10, "bold"),
+        wraplength=280,
+        justify="center",
+    ).pack(pady=(0, 4))
+
+    tk.Label(
+        frame,
+        text="El sistema está corriendo en tu navegador.",
+        font=("Segoe UI", 9),
+        fg="#555",
+    ).pack()
+
+    tk.Button(
+        frame,
+        text="Abrir en el navegador",
+        command=_abrir_navegador,
+        font=("Segoe UI", 9),
+        bg="#2563EB",
+        fg="white",
+        relief="flat",
+        padx=14,
+        pady=6,
+        cursor="hand2",
+    ).pack(pady=(12, 0))
+
+    # Al cerrar la ventana se cierra todo (Flask es daemon)
+    root.mainloop()

@@ -1,10 +1,10 @@
 name: Build y Release AGP
 
 on:
-  workflow_dispatch:        # permite lanzarlo manualmente desde GitHub
+  workflow_dispatch:
   push:
     tags:
-      - 'v*'               # se ejecuta automáticamente al crear un tag v1.0, v1.1, etc.
+      - 'v*'
 
 permissions:
   contents: write
@@ -24,7 +24,7 @@ jobs:
           python-version: '3.11'
 
       - name: Instalar dependencias
-        run: pip install flask python-dateutil fpdf2 openpyxl Pillow pywebview pyinstaller pyinstaller-hooks-contrib
+        run: pip install flask python-dateutil fpdf2 openpyxl Pillow pyinstaller pyinstaller-hooks-contrib
 
       - name: Convertir icono PNG a ICO
         run: |
@@ -85,10 +85,10 @@ jobs:
             ### Instalación en Windows
             1. Descarga **AGP-Installer.exe**
             2. Doble clic → siguiente → siguiente → listo
-            3. Abre la app desde el ícono en el Escritorio
+            3. El sistema abre automáticamente en tu navegador (Chrome, Edge, Firefox)
 
-            > No requiere instalar Python, navegador ni ninguna dependencia adicional.
-            > Requiere Windows 10 o superior (WebView2 de Microsoft Edge, ya incluido en el sistema).
+            > No requiere instalar Python ni ninguna dependencia adicional.
+            > Compatible con Windows 10 y Windows 11.
           files: AGP-Installer.exe
           draft: false
           prerelease: false

@@ -5,18 +5,16 @@ block_cipher = None
 
 fpdf_datas,     fpdf_bins,     fpdf_hidden     = collect_all('fpdf')
 openpyxl_datas, openpyxl_bins, openpyxl_hidden = collect_all('openpyxl')
-webview_datas,  webview_bins,  webview_hidden   = collect_all('webview')
 
 hiddenimports = (
     fpdf_hidden +
     openpyxl_hidden +
-    webview_hidden +
     collect_submodules('flask') +
     collect_submodules('jinja2') +
     collect_submodules('werkzeug') +
     [
-        'webview',
-        'webview.platforms.winforms',
+        'tkinter',
+        'tkinter.ttk',
         'controllers.cliente_controller',
         'controllers.prestamo_controller',
         'controllers.pago_controller',
@@ -41,6 +39,7 @@ hiddenimports = (
         'openpyxl',
         'dateutil',
         'dateutil.relativedelta',
+        'webbrowser',
     ]
 )
 
@@ -52,12 +51,12 @@ a = Analysis(
         ('templates', 'templates'),
         ('static',    'static'),
         ('config.py', '.'),
-    ] + fpdf_datas + openpyxl_datas + webview_datas,
-    binaries=fpdf_bins + openpyxl_bins + webview_bins,
+    ] + fpdf_datas + openpyxl_datas,
+    binaries=fpdf_bins + openpyxl_bins,
     hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[],
-    excludes=['PyQt6', 'PyQt6.QtWebEngineWidgets', 'PyQt6.QtWebEngineCore'],
+    excludes=['PyQt6', 'PyQt6.QtWebEngineWidgets', 'PyQt6.QtWebEngineCore', 'webview'],
     cipher=block_cipher,
     noarchive=False,
 )
@@ -75,7 +74,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,
-    icon='assets/icon.ico',   # Windows requiere .ico (se convierte en el workflow)
+    icon='assets/icon.ico',
 )
 
 coll = COLLECT(
