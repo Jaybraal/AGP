@@ -27,6 +27,15 @@ from database.seed import insertar_defaults
 crear_tablas()
 insertar_defaults()
 
+# ── Sin caché — fuerza siempre templates frescos ─────────────────────────────
+
+@app.after_request
+def no_cache(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
 # ── Autenticación ─────────────────────────────────────────────────────────────
 
 _RUTAS_PUBLICAS = {"login", "static"}

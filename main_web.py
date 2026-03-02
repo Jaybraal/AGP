@@ -40,10 +40,15 @@ if __name__ == "__main__":
 
     from PyQt6.QtWidgets import QApplication, QMainWindow
     from PyQt6.QtWebEngineWidgets import QWebEngineView
+    from PyQt6.QtWebEngineCore import QWebEngineProfile
     from PyQt6.QtCore import QUrl, QTimer
     from PyQt6.QtGui import QIcon
 
     qt_app = QApplication(sys.argv)
+
+    # Perfil sin persistencia de cookies ni caché — cada apertura empieza limpia
+    profile = QWebEngineProfile(qt_app)
+    profile.setHttpCacheType(QWebEngineProfile.HttpCacheType.NoCache)
 
     # Ventana principal
     window = QMainWindow()
@@ -56,8 +61,11 @@ if __name__ == "__main__":
     if os.path.exists(icon_path):
         window.setWindowIcon(QIcon(icon_path))
 
-    # Vista web embebida
+    # Vista web embebida — usa perfil sin persistencia
+    from PyQt6.QtWebEngineCore import QWebEnginePage
+    page = QWebEnginePage(profile)
     web = QWebEngineView()
+    web.setPage(page)
     window.setCentralWidget(web)
     window.show()
 
