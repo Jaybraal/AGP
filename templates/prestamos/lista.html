@@ -70,8 +70,17 @@
           </td>
           <td class="px-4 py-3 text-slate-400 text-xs">{{ p.fecha_vencimiento }}</td>
           <td class="px-4 py-3">
-            <a href="/prestamos/{{ p.id }}"
-               class="px-2.5 py-1 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700">Ver</a>
+            <div class="flex items-center gap-2">
+              <a href="/prestamos/{{ p.id }}"
+                 class="px-2.5 py-1 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700">Ver</a>
+              <form method="POST" action="/prestamos/{{ p.id }}/eliminar" style="display:inline"
+                    onsubmit="return confirm('¿Eliminar el préstamo {{ p.numero_prestamo }}?\nEsta acción no se puede deshacer.')">
+                <button type="submit"
+                        class="px-2.5 py-1 border border-red-200 text-red-500 rounded text-xs font-semibold hover:bg-red-50">
+                  🗑️
+                </button>
+              </form>
+            </div>
           </td>
         </tr>
         {% else %}

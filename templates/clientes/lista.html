@@ -68,6 +68,13 @@
                  class="px-2.5 py-1 border border-slate-200 text-slate-600 rounded text-xs font-semibold hover:bg-slate-50">Editar</a>
               <a href="/prestamos/nuevo?cliente_id={{ c.id }}"
                  class="px-2.5 py-1 border border-slate-200 text-slate-600 rounded text-xs font-semibold hover:bg-slate-50">Préstamo</a>
+              <form method="POST" action="/clientes/{{ c.id }}/eliminar" style="display:inline"
+                    onsubmit="return confirm('¿Eliminar a {{ c.nombres }} {{ c.apellidos }}?\nEsta acción no se puede deshacer.')">
+                <button type="submit"
+                        class="px-2.5 py-1 border border-red-200 text-red-500 rounded text-xs font-semibold hover:bg-red-50">
+                  🗑️
+                </button>
+              </form>
             </div>
           </td>
         </tr>
