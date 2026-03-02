@@ -11,6 +11,28 @@ from database.seed import insertar_defaults
 PORT = 8080
 
 
+def _liberar_puerto():
+    """En Windows, mata cualquier proceso que esté usando el puerto antes de arrancar."""
+    if sys.platform != "win32":
+        return
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["netstat", "-ano"],
+            capture_output=True, text=True
+        )
+        for line in result.stdout.splitlines():
+            if f":{PORT}" in line and "LISTENING" in line:
+                parts = line.split()
+                pid = parts[-1]
+                if pid.isdigit() and int(pid) != os.getpid():
+                    subprocess.run(["taskkill", "/PID", pid, "/F"],
+                                   capture_output=True)
+                    break
+    except Exception:
+        pass
+
+
 def bootstrap():
     os.makedirs(RECEIPTS_DIR, exist_ok=True)
     os.makedirs(REPORTS_DIR, exist_ok=True)
@@ -33,6 +55,7 @@ def _iniciar_flask():
 
 
 if __name__ == "__main__":
+    _liberar_puerto()
     bootstrap()
 
     # Arrancar Flask en hilo daemon ANTES de iniciar Qt

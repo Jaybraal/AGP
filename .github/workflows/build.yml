@@ -38,7 +38,8 @@ jobs:
       - name: Compilar instalador con Inno Setup
         run: |
           $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-          & $iscc AGP-installer.iss
+          $tag = "${{ github.ref_name }}" -replace '^v', ''
+          & $iscc /DAppVersion=$tag AGP-installer.iss
         shell: pwsh
 
       - name: Verificar que el instalador existe

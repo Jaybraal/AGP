@@ -5,7 +5,11 @@
 ; ===========================================================
 
 #define AppName      "AGP Sistema de Prestamos"
-#define AppVersion   "1.0"
+; La version se inyecta desde la linea de comandos: ISCC /DAppVersion=2.7 ...
+; Si no se pasa, se usa "1.0" como fallback
+#ifndef AppVersion
+  #define AppVersion "1.0"
+#endif
 #define AppPublisher "AGP"
 #define AppExeName   "AGP.exe"
 #define AppDir       "dist\AGP"
@@ -14,23 +18,25 @@
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 AppName={#AppName}
 AppVersion={#AppVersion}
+AppVerName={#AppName} v{#AppVersion}
 AppPublisher={#AppPublisher}
 DefaultDirName={autopf}\AGP
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 OutputDir=.
 OutputBaseFilename=AGP-Installer
-; SetupIconFile=assets\icon.ico  <- convierte icon.png a .ico con https://convertico.com y descomenta esta linea
+; SetupIconFile=assets\icon.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
-; No requiere admin si no es necesario
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-; Mostrar licencia (opcional, puedes quitar esta linea si no tienes)
-; LicenseFile=LICENSE.txt
 UninstallDisplayIcon={app}\{#AppExeName}
-UninstallDisplayName={#AppName}
+UninstallDisplayName={#AppName} v{#AppVersion}
+; Cerrar la app si está corriendo antes de instalar
+CloseApplications=yes
+CloseApplicationsFilter=*.exe
+RestartApplications=no
 
 [Languages]
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
