@@ -1,10 +1,14 @@
-"""Lanzador web — Flask en hilo + QWebEngineView (ventana de escritorio nativa, sin pythonnet)."""
+"""Lanzador web — Flask en hilo + pywebview (usa WebView2/Edge en Windows, nativo en macOS)."""
 
-import os, sys, threading, socket
+import os
+import sys
+import threading
+import socket
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import RECEIPTS_DIR, REPORTS_DIR, APP_WIDTH, APP_HEIGHT, APP_MIN_W, APP_MIN_H, APP_TITLE, ASSETS_DIR
+from config import RECEIPTS_DIR, REPORTS_DIR, APP_WIDTH, APP_HEIGHT, APP_TITLE
 from database.schema import crear_tablas
 from database.seed import insertar_defaults
 
@@ -54,70 +58,39 @@ def _iniciar_flask():
     app.run(debug=False, port=PORT, host="127.0.0.1", use_reloader=False)
 
 
+def _esperar_flask(timeout=15):
+    """Espera hasta que Flask esté respondiendo o se agote el tiempo."""
+    inicio = time.time()
+    while time.time() - inicio < timeout:
+        try:
+            with socket.create_connection(("127.0.0.1", PORT), timeout=0.5):
+                return True
+        except OSError:
+            time.sleep(0.2)
+    return False
+
+
 if __name__ == "__main__":
     _liberar_puerto()
     bootstrap()
 
-    # Arrancar Flask en hilo daemon ANTES de iniciar Qt
+    # Arrancar Flask en hilo daemon ANTES de abrir la ventana
     threading.Thread(target=_iniciar_flask, daemon=True).start()
 
-    from PyQt6.QtWidgets import QApplication, QMainWindow
-    from PyQt6.QtWebEngineWidgets import QWebEngineView
-    from PyQt6.QtWebEngineCore import QWebEngineProfile
-    from PyQt6.QtCore import QUrl, QTimer
-    from PyQt6.QtGui import QIcon
+    # Esperar a que Flask esté listo antes de abrir la ventana
+    _esperar_flask()
 
-    qt_app = QApplication(sys.argv)
+    import webview
 
-    # Perfil sin persistencia de cookies ni caché — cada apertura empieza limpia
-    profile = QWebEngineProfile(qt_app)
-    profile.setHttpCacheType(QWebEngineProfile.HttpCacheType.NoCache)
+    # pywebview usa WebView2/Edge en Windows, WebKit en macOS/Linux
+    # No requiere empaquetar Chromium — usa el motor del sistema operativo
+    webview.create_window(
+        title=APP_TITLE,
+        url=f"http://127.0.0.1:{PORT}",
+        width=APP_WIDTH,
+        height=APP_HEIGHT,
+        min_size=(1100, 650),
+        text_select=False,
+    )
 
-    # Ventana principal
-    window = QMainWindow()
-    window.setWindowTitle(APP_TITLE)
-    window.resize(APP_WIDTH, APP_HEIGHT)
-    window.setMinimumSize(APP_MIN_W, APP_MIN_H)
-
-    # Ícono si existe
-    icon_path = os.path.join(ASSETS_DIR, "icon.png")
-    if os.path.exists(icon_path):
-        window.setWindowIcon(QIcon(icon_path))
-
-    # Vista web embebida — usa perfil sin persistencia
-    from PyQt6.QtWebEngineCore import QWebEnginePage
-    page = QWebEnginePage(profile)
-    web = QWebEngineView()
-    web.setPage(page)
-    window.setCentralWidget(web)
-    window.show()
-
-    # Pantalla de carga mientras Flask inicia
-    web.setHtml("""<!DOCTYPE html>
-<html>
-<body style="margin:0;display:flex;align-items:center;justify-content:center;
-             height:100vh;font-family:'Segoe UI',sans-serif;
-             background:#1E3A8A;color:white;">
-  <div style="text-align:center">
-    <div style="font-size:3rem;font-weight:bold;margin-bottom:.5rem">AGP</div>
-    <div style="font-size:1rem;opacity:.7;margin-bottom:1rem">Sistema de Gestión de Préstamos</div>
-    <div style="font-size:.8rem;opacity:.4">Iniciando sistema...</div>
-  </div>
-</body>
-</html>""")
-
-    # Sondear el puerto cada 200ms y cargar cuando Flask esté listo
-    _timer = QTimer()
-
-    def _check_flask():
-        try:
-            with socket.create_connection(("127.0.0.1", PORT), timeout=0.3):
-                _timer.stop()
-                web.setUrl(QUrl(f"http://127.0.0.1:{PORT}"))
-        except OSError:
-            pass
-
-    _timer.timeout.connect(_check_flask)
-    _timer.start(200)
-
-    sys.exit(qt_app.exec())
+    webview.start()

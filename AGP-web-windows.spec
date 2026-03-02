@@ -3,22 +3,20 @@ from PyInstaller.utils.hooks import collect_submodules, collect_all
 
 block_cipher = None
 
-fpdf_datas,    fpdf_bins,    fpdf_hidden    = collect_all('fpdf')
-openpyxl_datas,openpyxl_bins,openpyxl_hidden= collect_all('openpyxl')
-webeng_datas,  webeng_bins,  webeng_hidden  = collect_all('PyQt6.QtWebEngineWidgets')
-webcore_datas, webcore_bins, webcore_hidden  = collect_all('PyQt6.QtWebEngineCore')
+fpdf_datas,     fpdf_bins,     fpdf_hidden     = collect_all('fpdf')
+openpyxl_datas, openpyxl_bins, openpyxl_hidden = collect_all('openpyxl')
+webview_datas,  webview_bins,  webview_hidden   = collect_all('webview')
 
 hiddenimports = (
-    fpdf_hidden + openpyxl_hidden +
-    webeng_hidden + webcore_hidden +
+    fpdf_hidden +
+    openpyxl_hidden +
+    webview_hidden +
     collect_submodules('flask') +
     collect_submodules('jinja2') +
     collect_submodules('werkzeug') +
     [
-        'PyQt6.QtWebEngineWidgets',
-        'PyQt6.QtWebEngineCore',
-        'PyQt6.QtWebChannel',
-        'PyQt6.sip',
+        'webview',
+        'webview.platforms.winforms',
         'controllers.cliente_controller',
         'controllers.prestamo_controller',
         'controllers.pago_controller',
@@ -54,12 +52,12 @@ a = Analysis(
         ('templates', 'templates'),
         ('static',    'static'),
         ('config.py', '.'),
-    ] + fpdf_datas + openpyxl_datas + webeng_datas + webcore_datas,
-    binaries=fpdf_bins + openpyxl_bins + webeng_bins + webcore_bins,
+    ] + fpdf_datas + openpyxl_datas + webview_datas,
+    binaries=fpdf_bins + openpyxl_bins + webview_bins,
     hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[],
-    excludes=[],
+    excludes=['PyQt6', 'PyQt6.QtWebEngineWidgets', 'PyQt6.QtWebEngineCore'],
     cipher=block_cipher,
     noarchive=False,
 )
@@ -77,7 +75,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,
-    icon='assets/icon.png',
+    icon='assets/icon.ico',   # Windows requiere .ico (se convierte en el workflow)
 )
 
 coll = COLLECT(
