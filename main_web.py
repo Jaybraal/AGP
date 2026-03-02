@@ -1,38 +1,46 @@
-"""Lanzador web — Flask en hilo + tkinter como ventana de control."""
+"""Lanzador web — Flask en hilo + Edge/Chrome en modo --app (ventana nativa)."""
 
 import os
 import sys
+import subprocess
 import threading
 import socket
 import time
 import webbrowser
+import secrets
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import RECEIPTS_DIR, REPORTS_DIR, APP_TITLE
+from config import RECEIPTS_DIR, REPORTS_DIR, APP_TITLE, APP_WIDTH, APP_HEIGHT
 from database.schema import crear_tablas
 from database.seed import insertar_defaults
 
 PORT = 8080
 
+# Directorio de perfil exclusivo de la app (evita mezclar con el navegador del usuario)
+if getattr(sys, "frozen", False):
+    if sys.platform == "win32":
+        _APP_DATA = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")), "AGP")
+    else:
+        _APP_DATA = os.path.join(os.path.expanduser("~"), "Library", "Application Support", "AGP")
+else:
+    _APP_DATA = os.path.dirname(os.path.abspath(__file__))
+
+# Clave secreta aleatoria → sesión siempre expira al cerrar la app
+_SESSION_KEY = secrets.token_hex(32)
+
 
 def _liberar_puerto():
-    """En Windows, mata cualquier proceso que esté usando el puerto antes de arrancar."""
     if sys.platform != "win32":
         return
     try:
-        import subprocess
-        result = subprocess.run(
-            ["netstat", "-ano"],
-            capture_output=True, text=True
-        )
+        result = subprocess.run(["netstat", "-ano"], capture_output=True, text=True)
         for line in result.stdout.splitlines():
             if f":{PORT}" in line and "LISTENING" in line:
                 parts = line.split()
                 pid = parts[-1]
                 if pid.isdigit() and int(pid) != os.getpid():
-                    subprocess.run(["taskkill", "/PID", pid, "/F"],
-                                   capture_output=True)
+                    subprocess.run(["taskkill", "/PID", pid, "/F"], capture_output=True)
                     break
     except Exception:
         pass
@@ -48,6 +56,8 @@ def bootstrap():
 def _iniciar_flask():
     from app_web import app
     import traceback as tb
+
+    app.secret_key = _SESSION_KEY   # aleatorio → login requerido en cada arranque
 
     @app.errorhandler(Exception)
     def handle_exception(e):
@@ -70,8 +80,50 @@ def _esperar_flask(timeout=15):
     return False
 
 
-def _abrir_navegador():
-    webbrowser.open(f"http://127.0.0.1:{PORT}")
+def _abrir_ventana_app():
+    """
+    Abre Edge o Chrome en modo --app con perfil exclusivo.
+    Devuelve el proceso para poder esperar a que el usuario lo cierre.
+    """
+    url = f"http://127.0.0.1:{PORT}"
+    profile_dir = os.path.join(_APP_DATA, "browser-profile")
+    os.makedirs(profile_dir, exist_ok=True)
+
+    flags = [
+        f"--app={url}",
+        f"--window-size={APP_WIDTH},{APP_HEIGHT}",
+        f"--user-data-dir={profile_dir}",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-extensions",
+    ]
+
+    # Buscar Edge (siempre presente en Windows 10 y 11)
+    for path in [
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    ]:
+        if os.path.exists(path):
+            return subprocess.Popen([path] + flags)
+
+    # Chrome como alternativa
+    for path in [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        os.path.expanduser(r"~\AppData\Local\Google\Chrome\Application\chrome.exe"),
+    ]:
+        if os.path.exists(path):
+            return subprocess.Popen([path] + flags)
+
+    # macOS (desarrollo)
+    if sys.platform == "darwin":
+        chrome_mac = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        if os.path.exists(chrome_mac):
+            return subprocess.Popen([chrome_mac] + flags)
+
+    # Último recurso: abrir en el navegador del sistema (no queda proceso para esperar)
+    webbrowser.open(url)
+    return None
 
 
 if __name__ == "__main__":
@@ -84,49 +136,14 @@ if __name__ == "__main__":
     # Esperar a que Flask esté listo
     _esperar_flask()
 
-    # Abrir el navegador del sistema automáticamente
-    _abrir_navegador()
-
-    # Ventana de control con tkinter (viene incluido en Python, sin dependencias extra)
-    import tkinter as tk
-
-    root = tk.Tk()
-    root.title(APP_TITLE)
-    root.geometry("320x140")
-    root.resizable(False, False)
-    # Centrar en pantalla
-    root.eval("tk::PlaceWindow . center")
-
-    frame = tk.Frame(root, padx=20, pady=16)
-    frame.pack(fill="both", expand=True)
-
-    tk.Label(
-        frame,
-        text="AGP — Sistema de Gestión de Préstamos",
-        font=("Segoe UI", 10, "bold"),
-        wraplength=280,
-        justify="center",
-    ).pack(pady=(0, 4))
-
-    tk.Label(
-        frame,
-        text="El sistema está corriendo en tu navegador.",
-        font=("Segoe UI", 9),
-        fg="#555",
-    ).pack()
-
-    tk.Button(
-        frame,
-        text="Abrir en el navegador",
-        command=_abrir_navegador,
-        font=("Segoe UI", 9),
-        bg="#2563EB",
-        fg="white",
-        relief="flat",
-        padx=14,
-        pady=6,
-        cursor="hand2",
-    ).pack(pady=(12, 0))
-
-    # Al cerrar la ventana se cierra todo (Flask es daemon)
-    root.mainloop()
+    # Abrir la ventana en modo app y esperar a que el usuario la cierre
+    proc = _abrir_ventana_app()
+    if proc:
+        proc.wait()   # bloquea hasta que el usuario cierra la ventana → Flask (daemon) se detiene
+    else:
+        # Fallback sin proceso: mantener Flask vivo hasta Ctrl+C
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass

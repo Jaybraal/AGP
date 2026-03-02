@@ -19,6 +19,9 @@ app = Flask(
     template_folder=os.path.join(_BASE, "templates"),
     static_folder=os.path.join(_BASE, "static"),
 )
+# SECRET_KEY aleatorio por defecto → se sobreescribe en main_web.py para
+# invalidar la sesión en cada arranque (fuerza login al reabrir la app).
+# En Railway usa la variable de entorno para mantener sesiones entre deploys.
 app.secret_key = os.environ.get("SECRET_KEY", "agp-secret-2026")
 
 # ── Bootstrap DB (gunicorn + desarrollo) ──────────────────────────────────────
