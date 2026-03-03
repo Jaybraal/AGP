@@ -85,7 +85,7 @@ def _iniciar_flask():
         )
 
     _log("Flask iniciando OK")
-    app.run(debug=False, port=PORT, host="127.0.0.1", use_reloader=False)
+    app.run(debug=True, port=PORT, host="127.0.0.1", use_reloader=False)
 
 
 def _esperar_flask(timeout=15):
