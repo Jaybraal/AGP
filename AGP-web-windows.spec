@@ -12,6 +12,11 @@ hiddenimports = (
     collect_submodules('flask') +
     collect_submodules('jinja2') +
     collect_submodules('werkzeug') +
+    collect_submodules('itsdangerous') +
+    collect_submodules('markupsafe') +
+    collect_submodules('click') +
+    collect_submodules('blinker') +
+    collect_submodules('dateutil') +
     [
         'tkinter',
         'tkinter.ttk',

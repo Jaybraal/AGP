@@ -24,7 +24,7 @@ jobs:
           python-version: '3.11'
 
       - name: Instalar dependencias
-        run: pip install flask python-dateutil fpdf2 openpyxl Pillow werkzeug pyinstaller pyinstaller-hooks-contrib
+        run: pip install flask python-dateutil fpdf2 openpyxl Pillow werkzeug itsdangerous markupsafe click blinker pyinstaller pyinstaller-hooks-contrib
 
       - name: Convertir icono PNG a ICO
         run: |
@@ -37,6 +37,12 @@ jobs:
 
       - name: Compilar con PyInstaller
         run: pyinstaller AGP-web-windows.spec
+
+      - name: Mostrar warnings de PyInstaller
+        run: |
+          $warn = "build\AGP-web-windows\warn-AGP-web-windows.txt"
+          if (Test-Path $warn) { Get-Content $warn | Select-Object -First 60 }
+        shell: pwsh
 
       - name: Verificar exe generado
         run: |
