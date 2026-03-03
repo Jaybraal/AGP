@@ -15,7 +15,7 @@ from config import RECEIPTS_DIR, REPORTS_DIR, APP_TITLE, APP_WIDTH, APP_HEIGHT
 from database.schema import crear_tablas
 from database.seed import insertar_defaults
 
-PORT = 8080
+_PORT_BASE = 8080
 
 if getattr(sys, "frozen", False):
     if sys.platform == "win32":
@@ -28,20 +28,20 @@ else:
 _SESSION_KEY = secrets.token_hex(32)
 
 
-def _liberar_puerto():
-    if sys.platform != "win32":
-        return
-    try:
-        result = subprocess.run(["netstat", "-ano"], capture_output=True, text=True)
-        for line in result.stdout.splitlines():
-            if f":{PORT}" in line and "LISTENING" in line:
-                parts = line.split()
-                pid = parts[-1]
-                if pid.isdigit() and int(pid) != os.getpid():
-                    subprocess.run(["taskkill", "/PID", pid, "/F"], capture_output=True)
-                    break
-    except Exception:
-        pass
+def _encontrar_puerto() -> int:
+    """Busca un puerto libre desde _PORT_BASE usando solo Python puro."""
+    for port in range(_PORT_BASE, _PORT_BASE + 20):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.bind(("127.0.0.1", port))
+                return port
+        except OSError:
+            continue
+    return _PORT_BASE
+
+
+PORT = _encontrar_puerto()
 
 
 def bootstrap():
@@ -85,7 +85,7 @@ def _iniciar_flask():
         )
 
     _log("Flask iniciando OK")
-    app.run(debug=True, port=PORT, host="127.0.0.1", use_reloader=False)
+    app.run(debug=False, port=PORT, host="127.0.0.1", use_reloader=False)
 
 
 def _esperar_flask(timeout=15):
@@ -204,7 +204,6 @@ def _abrir_ventana_app():
 
 
 if __name__ == "__main__":
-    _liberar_puerto()
     bootstrap()
 
     threading.Thread(target=_iniciar_flask, daemon=True).start()
