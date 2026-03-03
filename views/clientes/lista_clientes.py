@@ -95,6 +95,12 @@ class ListaClientes(QWidget):
         btn_perfil.clicked.connect(self._ver_perfil)
         tb_layout.addWidget(btn_perfil)
 
+        btn_eliminar = QPushButton("🗑️  Eliminar")
+        btn_eliminar.setObjectName("btn_danger")
+        btn_eliminar.setFixedHeight(38)
+        btn_eliminar.clicked.connect(self._eliminar)
+        tb_layout.addWidget(btn_eliminar)
+
         layout.addWidget(toolbar)
 
         # ── Table ──────────────────────────────────────────────
@@ -149,3 +155,28 @@ class ListaClientes(QWidget):
         from views.clientes.form_cliente import FormCliente
         dlg = FormCliente(cliente_id=sel["id"], on_guardado=self.refrescar, parent=self)
         dlg.exec()
+
+    def _eliminar(self):
+        sel = self._tabla.seleccionado()
+        if not sel:
+            return
+        from views.components.modal_confirm import confirmar
+        from controllers.cliente_controller import eliminar
+        nombre = f"{sel['nombres']} {sel['apellidos']}"
+        confirmar(
+            self,
+            titulo="Eliminar Cliente",
+            mensaje=f"¿Eliminar a {nombre}?\nEsta acción no se puede deshacer.",
+            btn_ok="Eliminar",
+            on_confirmado=lambda: self._hacer_eliminar(sel["id"]),
+        )
+
+    def _hacer_eliminar(self, cliente_id: int):
+        try:
+            from controllers.cliente_controller import eliminar
+            eliminar(cliente_id)
+        except Exception as e:
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(self, "Error", str(e))
+        finally:
+            self.refrescar()

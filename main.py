@@ -43,6 +43,11 @@ def main():
     font = QFont("Segoe UI", 12)
     app.setFont(font)
 
+    from views.login import LoginDialog
+    login = LoginDialog()
+    if login.exec() != login.DialogCode.Accepted:
+        sys.exit(0)
+
     from views.app import App
     window = App()
     window.show()

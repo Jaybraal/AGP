@@ -24,6 +24,7 @@ hiddenimports = collect_submodules('PyQt6') + [
     'database.schema',
     'database.seed',
     'views.app',
+    'views.login',
     'views.sidebar',
     'views.dashboard',
     'views.styles',

@@ -111,6 +111,12 @@ class ListaPrestamos(QWidget):
         btn_cobrar.clicked.connect(lambda: self._navegar("caja") if self._navegar else None)
         tb_layout.addWidget(btn_cobrar)
 
+        btn_eliminar = QPushButton("🗑️  Eliminar")
+        btn_eliminar.setObjectName("btn_danger")
+        btn_eliminar.setFixedHeight(38)
+        btn_eliminar.clicked.connect(self._eliminar)
+        tb_layout.addWidget(btn_eliminar)
+
         layout.addWidget(toolbar)
 
         # ── Table ──────────────────────────────────────────────
@@ -156,3 +162,27 @@ class ListaPrestamos(QWidget):
         from views.prestamos.detalle_prestamo import DetallePrestamo
         dlg = DetallePrestamo(prestamo_id=sel["id"], parent=self)
         dlg.exec()
+
+    def _eliminar(self):
+        sel = self._tabla.seleccionado()
+        if not sel:
+            return
+        from views.components.modal_confirm import confirmar
+        numero = sel.get("numero_prestamo", sel["id"])
+        confirmar(
+            self,
+            titulo="Eliminar Préstamo",
+            mensaje=f"¿Eliminar el préstamo {numero}?\nEsta acción no se puede deshacer.",
+            btn_ok="Eliminar",
+            on_confirmado=lambda: self._hacer_eliminar(sel["id"]),
+        )
+
+    def _hacer_eliminar(self, prestamo_id: int):
+        try:
+            from controllers.prestamo_controller import eliminar
+            eliminar(prestamo_id)
+        except Exception as e:
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(self, "Error", str(e))
+        finally:
+            self.refrescar()
