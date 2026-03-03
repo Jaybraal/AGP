@@ -52,14 +52,39 @@ def bootstrap():
 
 
 def _iniciar_flask():
-    from app_web import app
     import traceback as tb
+
+    _LOG = os.path.join(_APP_DATA, "agp_error.log")
+
+    def _log(msg: str):
+        try:
+            os.makedirs(_APP_DATA, exist_ok=True)
+            with open(_LOG, "a", encoding="utf-8") as f:
+                from datetime import datetime
+                f.write(f"[{datetime.now().isoformat()}] {msg}\n")
+        except Exception:
+            pass
+
+    try:
+        from app_web import app
+    except Exception:
+        err = tb.format_exc()
+        _log(f"ERROR al importar app_web:\n{err}")
+        raise
+
     app.secret_key = _SESSION_KEY
 
     @app.errorhandler(Exception)
     def handle_exception(e):
-        return (f"<pre style='color:red;padding:20px'>ERROR:\n{tb.format_exc()}</pre>", 500)
+        err = tb.format_exc()
+        _log(f"ERROR en ruta:\n{err}")
+        return (
+            f"<pre style='color:red;padding:20px;font-size:13px'>"
+            f"ERROR — revisa {_LOG}\n\n{err}</pre>",
+            500,
+        )
 
+    _log("Flask iniciando OK")
     app.run(debug=False, port=PORT, host="127.0.0.1", use_reloader=False)
 
 

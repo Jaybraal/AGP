@@ -24,7 +24,7 @@ app = Flask(
 # En Railway usa la variable de entorno para mantener sesiones entre deploys.
 app.secret_key = os.environ.get("SECRET_KEY", "agp-secret-2026")
 
-# ── Bootstrap DB (gunicorn + desarrollo) ──────────────────────────────────────
+# ── Bootstrap DB ─────────────────────────────────────────────────────────────
 from database.schema import crear_tablas
 from database.seed import insertar_defaults
 crear_tablas()
