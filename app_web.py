@@ -19,16 +19,77 @@ app = Flask(
     template_folder=os.path.join(_BASE, "templates"),
     static_folder=os.path.join(_BASE, "static"),
 )
-# SECRET_KEY aleatorio por defecto → se sobreescribe en main_web.py para
-# invalidar la sesión en cada arranque (fuerza login al reabrir la app).
-# En Railway usa la variable de entorno para mantener sesiones entre deploys.
 app.secret_key = os.environ.get("SECRET_KEY", "agp-secret-2026")
+
+# ── Middleware WSGI: captura cualquier excepción antes de que Flask la procese ─
+_LOG_PATH = os.path.join(
+    os.environ.get("APPDATA", os.path.expanduser("~")) if sys.platform == "win32"
+    else os.path.join(os.path.expanduser("~"), "Library", "Application Support"),
+    "AGP", "agp_error.log"
+)
+
+class _ErrMiddleware:
+    def __init__(self, wsgi_app):
+        self._app = wsgi_app
+    def __call__(self, environ, start_response):
+        try:
+            return self._app(environ, start_response)
+        except Exception:
+            import traceback
+            err = traceback.format_exc()
+            try:
+                os.makedirs(os.path.dirname(_LOG_PATH), exist_ok=True)
+                with open(_LOG_PATH, "a", encoding="utf-8") as f:
+                    f.write(err + "\n---\n")
+            except Exception:
+                pass
+            body = (
+                "<html><body style='font-family:monospace;padding:20px'>"
+                "<h2 style='color:red'>Error de la aplicacion</h2>"
+                f"<pre style='color:red'>{err}</pre>"
+                f"<p>Log: {_LOG_PATH}</p>"
+                "</body></html>"
+            ).encode("utf-8")
+            start_response("500 Internal Server Error", [
+                ("Content-Type", "text/html; charset=utf-8"),
+                ("Content-Length", str(len(body))),
+            ])
+            return [body]
+
+app.wsgi_app = _ErrMiddleware(app.wsgi_app)
 
 # ── Bootstrap DB ─────────────────────────────────────────────────────────────
 from database.schema import crear_tablas
 from database.seed import insertar_defaults
 crear_tablas()
 insertar_defaults()
+
+# ── Ruta de diagnóstico (pública, sin sesión) ─────────────────────────────────
+@app.route("/_health")
+def _health():
+    import platform, sqlite3
+    lines = [
+        f"Python: {sys.version}",
+        f"Platform: {platform.platform()}",
+        f"frozen: {getattr(sys, 'frozen', False)}",
+        f"_MEIPASS: {getattr(sys, '_MEIPASS', 'N/A')}",
+        f"template_folder: {app.template_folder}",
+        f"templates_exist: {os.path.isdir(app.template_folder)}",
+        f"static_folder: {app.static_folder}",
+        f"login.html: {os.path.isfile(os.path.join(app.template_folder, 'login.html'))}",
+        f"sqlite3: {sqlite3.sqlite_version}",
+    ]
+    try:
+        import itsdangerous
+        lines.append(f"itsdangerous: {itsdangerous.__version__}")
+    except Exception as e:
+        lines.append(f"itsdangerous: FALTA ({e})")
+    try:
+        import markupsafe
+        lines.append(f"markupsafe: OK")
+    except Exception as e:
+        lines.append(f"markupsafe: FALTA ({e})")
+    return "<pre>" + "\n".join(lines) + "</pre>", 200
 
 # ── Sin caché — fuerza siempre templates frescos ─────────────────────────────
 
@@ -41,7 +102,7 @@ def no_cache(response):
 
 # ── Autenticación ─────────────────────────────────────────────────────────────
 
-_RUTAS_PUBLICAS = {"login", "static"}
+_RUTAS_PUBLICAS = {"login", "static", "_health"}
 
 @app.before_request
 def verificar_sesion():
