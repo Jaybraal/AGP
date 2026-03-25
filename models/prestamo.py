@@ -148,14 +148,21 @@ def actualizar_estado_prestamo(prestamo_id: int, estado: str):
 
 
 def eliminar_prestamo(prestamo_id: int):
-    """Hard delete. Raises ValueError if loan has payments (cuotas/garantes cascade)."""
+    """Hard delete. Solo permite borrar préstamos CANCELADOS o sin pagos activos."""
     conn = get_connection()
-    pagos = conn.execute(
-        "SELECT COUNT(*) FROM pagos WHERE prestamo_id = ? AND anulado = 0",
-        (prestamo_id,),
-    ).fetchone()[0]
-    if pagos:
-        raise ValueError("No se puede eliminar: el préstamo tiene pagos registrados.")
+    prestamo = conn.execute(
+        "SELECT estado FROM prestamos WHERE id = ?", (prestamo_id,)
+    ).fetchone()
+    if not prestamo:
+        raise ValueError("Préstamo no encontrado.")
+    estados_activos = ("ACTIVO", "AL_DIA", "VENCIDO", "REFINANCIADO")
+    if prestamo["estado"] in estados_activos:
+        raise ValueError(
+            f"No se puede eliminar: el préstamo está en estado {prestamo['estado']}."
+        )
+    # Borrar pagos primero (FK pagos→cuotas no tiene CASCADE)
+    conn.execute("DELETE FROM pagos WHERE prestamo_id = ?", (prestamo_id,))
+    # Borrar el préstamo (cuotas y garantes se eliminan en cascada)
     conn.execute("DELETE FROM prestamos WHERE id = ?", (prestamo_id,))
     conn.commit()
 
